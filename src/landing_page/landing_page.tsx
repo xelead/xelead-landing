@@ -10,7 +10,6 @@ import Outcomes from "./components/outcomes";
 import Process from "./components/process";
 import ProposalDialog, { ProposalDialogHandle } from "./components/proposal_dialog";
 import Services from "./components/services";
-import utilities from "./components/landing_utilities.module.css";
 
 const CONTACT = {
 	phone: "+1 (469) 567 0102",
@@ -39,14 +38,14 @@ export default function LandingPage() {
 	}, []);
 
 	useEffect(() => {
-		const elements = Array.from(document.querySelectorAll(`.${utilities.reveal}`));
+		const elements = Array.from(document.querySelectorAll(".reveal"));
 		if (elements.length === 0) return;
 
 		const observer = new IntersectionObserver(
 			(entries) => {
 				for (const entry of entries) {
 					if (entry.isIntersecting) {
-						entry.target.classList.add(utilities.revealActive);
+						entry.target.classList.add("on");
 					}
 				}
 			},
@@ -61,7 +60,7 @@ export default function LandingPage() {
 		<div className="landing">
 			<Background />
 			<Header phone={CONTACT.phone} email={CONTACT.email} onProposal={openProposal} />
-			<main className={utilities.container}>
+			<main className="container">
 				<Hero onStart={() => handleAction("start")} onHow={() => handleAction("how")} />
 				<Services />
 				<Process />

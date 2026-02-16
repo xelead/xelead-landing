@@ -1,54 +1,53 @@
-import styles from "./outcomes.module.css";
-import utilities from "./landing_utilities.module.css";
-
 type OutcomesProps = {
 	onProposal: () => void;
 };
 
 export default function Outcomes({ onProposal }: OutcomesProps) {
 	return (
-		<section id="work" className={styles.section}>
-			<div className={`${styles.outcomes} ${utilities.reveal}`}>
-				<div className={styles.outgrid}>
+		<section id="work">
+			<div className="outcomes reveal">
+				<div className="outgrid">
 					<div>
-						<div className={`${utilities.kicker} ${utilities.gradientText}`}>Outcomes</div>
-						<h2 className={styles.heading}>Launch smarter workflows-without new headcount.</h2>
-						<p className={utilities.sub} style={{ marginTop: "12px" }}>
+						<div className="k gradient-text">Outcomes</div>
+						<h2 style={{ margin: "10px 0 0", fontSize: "28px", letterSpacing: "-0.02em" }}>
+							Launch smarter workflows-without new headcount.
+						</h2>
+						<p className="sub" style={{ marginTop: "12px" }}>
 							Our work focuses on measurable impact: faster cycle times, higher quality, and better decision-making.
 						</p>
-						<div className={styles.tags}>
-							<span className={styles.tag}>Reduce manual effort</span>
-							<span className={styles.tag}>Improve resolution</span>
-							<span className={styles.tag}>Boost conversion</span>
-							<span className={styles.tag}>Decrease errors</span>
+						<div className="tags">
+							<span className="tag">Reduce manual effort</span>
+							<span className="tag">Improve resolution</span>
+							<span className="tag">Boost conversion</span>
+							<span className="tag">Decrease errors</span>
 						</div>
 					</div>
 
-					<div className={styles.metrics}>
-						<div className={styles.metric}>
-							<div className={styles.metricKey}>Time saved</div>
-							<div className={`${styles.metricValue} ${utilities.gradientText}`}>15-35%</div>
+					<div className="metrics">
+						<div className="metric">
+							<div className="k">Time saved</div>
+							<div className="v gradient-text">15-35%</div>
 						</div>
-						<div className={styles.metric}>
-							<div className={styles.metricKey}>Faster turnaround</div>
-							<div className={`${styles.metricValue} ${utilities.gradientText}`}>2-5x</div>
+						<div className="metric">
+							<div className="k">Faster turnaround</div>
+							<div className="v gradient-text">2-5x</div>
 						</div>
-						<div className={styles.metric}>
-							<div className={styles.metricKey}>Adoption</div>
-							<div className={`${styles.metricValue} ${utilities.gradientText}`}>Built for users</div>
+						<div className="metric">
+							<div className="k">Adoption</div>
+							<div className="v gradient-text">Built for users</div>
 						</div>
 					</div>
 				</div>
 
-				<div className={styles.cta}>
+				<div className="cta">
 					<div>
-						<div className={styles.ctaHeading}>Ready to explore an AI build?</div>
-						<div className={styles.ctaSub}>
+						<div style={{ fontWeight: 700 }}>Ready to explore an AI build?</div>
+						<div style={{ marginTop: "6px", color: "var(--muted2)", fontSize: "14px" }}>
 							Tell us your workflow and we'll propose a path to production.
 						</div>
 					</div>
-					<div className={`${utilities.row} ${utilities.wrap} ${utilities.gap12}`}>
-						<button className={`${utilities.btn} ${utilities.btnPrimary} ${styles.ctaButton}`} type="button" onClick={onProposal}>
+					<div className="row wrap gap-12">
+						<button className="btn btn-primary" type="button" onClick={onProposal}>
 							Get a proposal <span aria-hidden="true">&rarr;</span>
 						</button>
 					</div>

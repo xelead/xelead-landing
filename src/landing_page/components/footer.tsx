@@ -1,6 +1,3 @@
-import styles from "./footer.module.css";
-import utilities from "./landing_utilities.module.css";
-
 type FooterProps = {
 	phone: string;
 	email: string;
@@ -10,12 +7,12 @@ type FooterProps = {
 
 export default function Footer({ phone, email, address, year }: FooterProps) {
 	return (
-		<footer className={styles.footerSection}>
-			<div className={utilities.container}>
-				<div className={styles.footer}>
+		<footer>
+			<div className="container">
+				<div className="footer">
 					<div>
-						<div className={`${utilities.row} ${utilities.gap12}`}>
-							<div className={utilities.logo} aria-hidden="true" style={{ width: "36px", height: "36px", borderRadius: "16px" }}>
+						<div className="row gap-12">
+							<div className="logo" aria-hidden="true" style={{ width: "36px", height: "36px", borderRadius: "16px" }}>
 								<svg
 									width="16"
 									height="16"
@@ -27,28 +24,32 @@ export default function Footer({ phone, email, address, year }: FooterProps) {
 								</svg>
 							</div>
 							<div>
-								<div className={styles.brandName}>Xelead</div>
-								<div className={styles.brandMeta}>Custom AI applications &middot; Dallas</div>
+								<div style={{ fontWeight: 700, fontSize: "14px" }}>Xelead</div>
+								<div style={{ color: "var(--muted2)", fontSize: "12px", marginTop: "2px" }}>
+									Custom AI applications &middot; Dallas
+								</div>
 							</div>
 						</div>
 
-						<div className={styles.note}>&copy; {year} Xelead. All rights reserved.</div>
-						<div className={utilities.contactMini} style={{ marginTop: "10px" }}>
-							<div className={utilities.contactLine}>
-								<span className={utilities.contactChip}>
-									<span className={utilities.tinyDot}></span>
+						<div style={{ marginTop: "10px", color: "rgba(255,255,255,0.50)", fontSize: "12px" }}>
+							&copy; {year} Xelead. All rights reserved.
+						</div>
+						<div className="contact-mini" style={{ marginTop: "10px" }}>
+							<div className="line">
+								<span className="chip">
+									<span className="tiny-dot"></span>
 									<span>{phone}</span>
 								</span>
-								<span className={utilities.contactChip}>
-									<span className={utilities.tinyDot}></span>
+								<span className="chip">
+									<span className="tiny-dot"></span>
 									<span>{email}</span>
 								</span>
 							</div>
-							<div className={styles.address}>{address}</div>
+							<div style={{ marginTop: "6px", color: "rgba(255,255,255,0.55)" }}>{address}</div>
 						</div>
 					</div>
 
-					<div className={styles.links}>
+					<div className="links">
 						<a href="#services">Services</a>
 						<a href="#process">Process</a>
 						<a href="#work">Outcomes</a>

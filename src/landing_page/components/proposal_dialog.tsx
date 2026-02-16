@@ -9,8 +9,6 @@ import {
 
 import { landingPageConfig } from "../config";
 import { sendProposalEmail } from "../proposalApi";
-import styles from "./proposal_dialog.module.css";
-import utilities from "./landing_utilities.module.css";
 
 declare global {
 	interface Window {
@@ -144,26 +142,26 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 	return (
 		<dialog
 			id="proposalDialog"
-			className={styles.dialog}
+			className="proposal-dialog"
 			data-api-base-url={apiBaseUrl}
 			aria-labelledby="proposalTitle"
 			ref={dialogRef}
 			onClick={handleDialogClick}
 		>
-			<div className={styles.shell}>
-				<div className={styles.head}>
+			<div className="proposal-shell">
+				<div className="proposal-head">
 					<div>
-						<p className={styles.kicker}>Project intake</p>
-						<h3 id="proposalTitle" className={styles.title}>Get a proposal</h3>
-						<p className={styles.sub}>Share the essentials and we will respond with a short proposal.</p>
+						<p className="proposal-kicker">Project intake</p>
+						<h3 id="proposalTitle">Get a proposal</h3>
+						<p className="proposal-sub">Share the essentials and we will respond with a short proposal.</p>
 					</div>
-					<button className={styles.close} type="button" aria-label="Close dialog" onClick={close}>
+					<button className="dialog-close" type="button" aria-label="Close dialog" onClick={close}>
 						&times;
 					</button>
 				</div>
 
-				<form className={styles.form} noValidate onSubmit={handleSubmit}>
-					<label className={styles.field}>
+				<form className="proposal-form" noValidate onSubmit={handleSubmit}>
+					<label className="field">
 						<span>Email</span>
 						<input
 							name="email"
@@ -176,7 +174,7 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 						/>
 					</label>
 
-					<label className={styles.field}>
+					<label className="field">
 						<span>Comment</span>
 						<textarea
 							name="comment"
@@ -189,7 +187,7 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 					</label>
 
 					<input name="turnstileToken" type="hidden" value={turnstileToken} />
-					<div className={styles.captcha}>
+					<div className="proposal-captcha">
 						<div
 							className="cf-turnstile"
 							data-sitekey={turnstileSiteKey}
@@ -198,16 +196,16 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 						></div>
 					</div>
 
-					<p className={styles.status} role="status" aria-live="polite" data-tone={status.tone}>
+					<p className="proposal-status" role="status" aria-live="polite" data-tone={status.tone}>
 						{status.message}
 					</p>
 
-					<div className={styles.actions}>
-						<button className={`${utilities.btn} ${styles.actionButton}`} type="button" data-dialog-close="true" onClick={close}>
+					<div className="proposal-actions">
+						<button className="btn" type="button" data-dialog-close="true" onClick={close}>
 							Cancel
 						</button>
 						<button
-							className={`${utilities.btn} ${utilities.btnPrimary} ${styles.actionButton} ${styles.submitButton}`}
+							className="btn btn-primary"
 							type="submit"
 							disabled={busy}
 							data-busy={busy}
