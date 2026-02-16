@@ -13,7 +13,8 @@ import { sendProposalEmail } from "../proposal_api";
 declare global {
 	interface Window {
 		turnstile?: {
-			reset: () => void;
+			reset: (widgetId?: string) => void;
+			render?: (container: HTMLElement, options: Record<string, string>) => string;
 		};
 		proposalTurnstileCallback?: (token: string) => void;
 		proposalTurnstileExpired?: () => void;
