@@ -36,11 +36,13 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 	const dialogRef = useRef<HTMLDialogElement>(null);
 	const captchaRef = useRef<HTMLDivElement>(null);
 	const turnstileWidgetId = useRef<string | null>(null);
+	const turnstilePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	const [email, setEmail] = useState("");
 	const [comment, setComment] = useState("");
 	const [turnstileToken, setTurnstileToken] = useState("");
 	const [status, setStatus] = useState<ProposalStatus>(emptyStatus);
 	const [busy, setBusy] = useState(false);
+	const [isOpen, setIsOpen] = useState(false);
 
 	const { apiBaseUrl, turnstileSiteKey } = landingPageConfig;
 
@@ -80,22 +82,54 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 			});
 			turnstileWidgetId.current = widgetId;
 			container.dataset.turnstileRendered = "true";
+			return true;
 		} catch (err) {
 			console.warn("Turnstile render failed", err);
 		}
+
+		return false;
 	}, [turnstileSiteKey]);
 
 	const open = useCallback(() => {
 		resetForm();
 		dialogRef.current?.showModal();
-		requestAnimationFrame(() => {
-			renderTurnstile();
-		});
-	}, [renderTurnstile, resetForm]);
+		setIsOpen(true);
+	}, [resetForm]);
 
 	const close = useCallback(() => {
 		dialogRef.current?.close();
+		setIsOpen(false);
 	}, []);
+
+	useEffect(() => {
+		if (!isOpen) return;
+
+		if (renderTurnstile()) {
+			return;
+		}
+
+		if (turnstilePollRef.current) {
+			clearInterval(turnstilePollRef.current);
+		}
+
+		let attempts = 0;
+		turnstilePollRef.current = setInterval(() => {
+			attempts += 1;
+			if (renderTurnstile() || attempts > 20) {
+				if (turnstilePollRef.current) {
+					clearInterval(turnstilePollRef.current);
+					turnstilePollRef.current = null;
+				}
+			}
+		}, 250);
+
+		return () => {
+			if (turnstilePollRef.current) {
+				clearInterval(turnstilePollRef.current);
+				turnstilePollRef.current = null;
+			}
+		};
+	}, [isOpen, renderTurnstile]);
 
 	useImperativeHandle(
 		ref,
@@ -178,6 +212,7 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 			aria-labelledby="proposalTitle"
 			ref={dialogRef}
 			onClick={handleDialogClick}
+			onClose={() => setIsOpen(false)}
 		>
 			<div className="proposal-shell">
 				<div className="proposal-head">
