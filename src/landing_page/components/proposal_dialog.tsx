@@ -34,6 +34,8 @@ const emptyStatus: ProposalStatus = { tone: "", message: "" };
 
 const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(_, ref) {
 	const dialogRef = useRef<HTMLDialogElement>(null);
+	const captchaRef = useRef<HTMLDivElement>(null);
+	const turnstileWidgetId = useRef<string | null>(null);
 	const [email, setEmail] = useState("");
 	const [comment, setComment] = useState("");
 	const [turnstileToken, setTurnstileToken] = useState("");
@@ -50,17 +52,46 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 		setBusy(false);
 		if (typeof window !== "undefined") {
 			try {
-				window.turnstile?.reset();
+				if (turnstileWidgetId.current) {
+					window.turnstile?.reset(turnstileWidgetId.current);
+				} else {
+					window.turnstile?.reset();
+				}
 			} catch (err) {
 				console.warn("Turnstile reset failed", err);
 			}
 		}
 	}, []);
 
+	const renderTurnstile = useCallback(() => {
+		if (typeof window === "undefined") return;
+		if (!turnstileSiteKey) return;
+		if (!window.turnstile?.render) return;
+
+		const container = captchaRef.current;
+		if (!container) return;
+		if (container.dataset.turnstileRendered === "true") return;
+
+		try {
+			const widgetId = window.turnstile.render(container, {
+				sitekey: turnstileSiteKey,
+				callback: "proposalTurnstileCallback",
+				"expired-callback": "proposalTurnstileExpired",
+			});
+			turnstileWidgetId.current = widgetId;
+			container.dataset.turnstileRendered = "true";
+		} catch (err) {
+			console.warn("Turnstile render failed", err);
+		}
+	}, [turnstileSiteKey]);
+
 	const open = useCallback(() => {
 		resetForm();
 		dialogRef.current?.showModal();
-	}, [resetForm]);
+		requestAnimationFrame(() => {
+			renderTurnstile();
+		});
+	}, [renderTurnstile, resetForm]);
 
 	const close = useCallback(() => {
 		dialogRef.current?.close();
@@ -188,12 +219,17 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 
 					<input name="turnstileToken" type="hidden" value={turnstileToken} />
 					<div className="proposal-captcha">
-						<div
-							className="cf-turnstile"
-							data-sitekey={turnstileSiteKey}
-							data-callback="proposalTurnstileCallback"
-							data-expired-callback="proposalTurnstileExpired"
-						></div>
+						{turnstileSiteKey ? (
+							<div
+								ref={captchaRef}
+								className="cf-turnstile"
+								data-sitekey={turnstileSiteKey}
+								data-callback="proposalTurnstileCallback"
+								data-expired-callback="proposalTurnstileExpired"
+							></div>
+						) : (
+							<span>Turnstile site key missing.</span>
+						)}
 					</div>
 
 					<p className="proposal-status" role="status" aria-live="polite" data-tone={status.tone}>
