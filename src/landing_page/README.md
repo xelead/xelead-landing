@@ -1,6 +1,6 @@
 # Landing Page Modules
 
-This folder holds modular landing page behavior. The proposal dialog lives in `proposalDialog.ts` and expects:
+This folder holds modular landing page behavior. The proposal dialog lives in `proposal_dialog.ts` and expects:
 
 - A `src/landing_page/components/proposal-dialog.html` partial for the dialog markup.
 - A Cloudflare Turnstile site key in the dialog markup.

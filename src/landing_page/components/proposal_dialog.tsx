@@ -8,7 +8,7 @@ import {
 } from "react";
 
 import { landingPageConfig } from "../config";
-import { sendProposalEmail } from "../proposalApi";
+import { sendProposalEmail } from "../proposal_api";
 
 declare global {
 	interface Window {

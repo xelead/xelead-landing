@@ -1,5 +1,5 @@
 import { landingPageConfig } from "./config";
-import { sendProposalEmail } from "./proposalApi";
+import { sendProposalEmail } from "./proposal_api";
 
 const DEFAULT_SITE_KEY = landingPageConfig.turnstileSiteKey;
 const DEFAULT_API_BASE_URL = landingPageConfig.apiBaseUrl;

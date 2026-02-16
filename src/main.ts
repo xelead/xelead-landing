@@ -1,4 +1,4 @@
-import { initProposalDialog } from "./landing_page/proposalDialog";
+import { initProposalDialog } from "./landing_page/proposal_dialog";
 
 function initApp() {
     const CONTACT: { phone: string; email: string; address: string } = {
