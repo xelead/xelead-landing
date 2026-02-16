@@ -470,6 +470,9 @@ footer { padding: 26px 0 34px; }
 	background: rgba(8, 7, 14, 0.95);
 	color: var(--text);
 	box-shadow: var(--shadow);
+	margin: auto;
+	position: fixed;
+	inset: 0;
 }
 
 .proposal-dialog::backdrop {
@@ -556,6 +559,12 @@ footer { padding: 26px 0 34px; }
 .proposal-captcha {
 	display: flex;
 	justify-content: flex-start;
+	min-height: 65px;
+}
+
+.cf-turnstile {
+	min-height: 65px;
+	min-width: 300px;
 }
 
 .proposal-status {
