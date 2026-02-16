@@ -1,0 +1,66 @@
+.header {
+	padding: 22px 0;
+}
+
+.headerRow {
+	align-items: flex-start;
+}
+
+.brand {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+}
+
+.brandTitle {
+	margin: 0;
+	font-size: 18px;
+	letter-spacing: -0.02em;
+}
+
+.meta {
+	margin-top: 2px;
+	color: var(--muted2);
+	font-size: 12px;
+}
+
+.nav {
+	display: none;
+	gap: 22px;
+	color: rgba(255,255,255,0.70);
+	font-size: 14px;
+}
+
+.nav a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.nav a:hover {
+	color: white;
+}
+
+@media (min-width: 900px) {
+	.nav {
+		display: flex;
+	}
+}
+
+@media (max-width: 700px) {
+	.headerRow {
+		flex-wrap: wrap;
+		gap: 16px;
+	}
+
+	.headerActions {
+		width: 100%;
+		justify-content: flex-start;
+	}
+}
+
+@media (max-width: 560px) {
+	.headerActions button {
+		width: 100%;
+		justify-content: center;
+	}
+}

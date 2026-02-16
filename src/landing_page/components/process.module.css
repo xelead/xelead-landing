@@ -1,0 +1,96 @@
+.section {
+	padding: 26px 0 46px;
+}
+
+.two {
+	display: grid;
+	gap: 18px;
+}
+
+@media (min-width: 900px) {
+	.two {
+		grid-template-columns: 1fr 1fr;
+		gap: 18px;
+	}
+}
+
+.heading {
+	margin: 10px 0 0;
+	font-size: 28px;
+	letter-spacing: -0.02em;
+}
+
+.steps {
+	margin-top: 16px;
+	display: grid;
+	gap: 10px;
+}
+
+.step {
+	padding: 12px 14px;
+	border-radius: 18px;
+	border: 1px solid rgba(255,255,255,0.10);
+	background: rgba(255,255,255,0.05);
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.stepBullet {
+	width: 10px;
+	height: 10px;
+	border-radius: 999px;
+	background: linear-gradient(90deg, var(--g1), var(--g2), var(--g3));
+}
+
+.stepText {
+	color: rgba(255,255,255,0.82);
+	font-size: 14px;
+}
+
+.deliver {
+	padding: 18px;
+}
+
+.deliverLabel {
+	font-size: 12px;
+	color: var(--muted2);
+}
+
+.deliverTitle {
+	margin-top: 6px;
+	font-size: 18px;
+	font-weight: 700;
+}
+
+.dlist {
+	margin-top: 14px;
+	display: grid;
+	gap: 10px;
+}
+
+.ditem {
+	padding: 14px;
+	border-radius: 18px;
+	border: 1px solid rgba(255,255,255,0.10);
+	background: rgba(11,10,20,0.55);
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+}
+
+.check {
+	width: 26px;
+	height: 26px;
+	border-radius: 12px;
+	background: linear-gradient(135deg, var(--g1), var(--g2), var(--g3));
+	display: grid;
+	place-items: center;
+	flex: 0 0 auto;
+}
+
+.ditemText {
+	color: rgba(255,255,255,0.72);
+	font-size: 14px;
+	line-height: 1.55;
+}
