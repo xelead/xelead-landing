@@ -15,7 +15,8 @@ type ProposalPayload = {
 };
 
 type TurnstileApi = {
-    reset: () => void;
+    reset: (widgetId?: string) => void;
+    render?: (container: HTMLElement, options: Record<string, string>) => string;
 };
 
 declare global {
