@@ -18,12 +18,8 @@
 	"upload_source_maps": true,
 	"vars": {
 		"NEXT_PUBLIC_ASSETS_BASE_URL": "https://cdn1.xelead.com",
-		"NEXT_PUBLIC_TURNSTILE_SITE_KEY": "",
 		"NEXT_PUBLIC_API_BASE_URL": "https://xelead.com/api",
-		"POSTMARK_SERVER_TOKEN": "",
 		"POSTMARK_FROM_EMAIL": "website@xelead.com",
-		"POSTMARK_TO_EMAIL": "dev@xelead.com",
-		"TURNSTILE_SECRET_KEY": "",
-		"CORS_ORIGIN": ""
+		"POSTMARK_TO_EMAIL": "dev@xelead.com"
 	}
 }
