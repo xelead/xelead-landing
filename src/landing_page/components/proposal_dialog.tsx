@@ -14,10 +14,11 @@ declare global {
 	interface Window {
 		turnstile?: {
 			reset: (widgetId?: string) => void;
-			render?: (container: HTMLElement, options: Record<string, string>) => string;
+			render?: (
+				container: HTMLElement,
+				options: Record<string, string | ((token?: string) => void)>
+			) => string;
 		};
-		proposalTurnstileCallback?: (token: string) => void;
-		proposalTurnstileExpired?: () => void;
 	}
 }
 
@@ -57,8 +58,6 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 			try {
 				if (turnstileWidgetId.current) {
 					window.turnstile?.reset(turnstileWidgetId.current);
-				} else {
-					window.turnstile?.reset();
 				}
 			} catch (err) {
 				console.warn("Turnstile reset failed", err);
@@ -78,8 +77,15 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 		try {
 			const widgetId = window.turnstile.render(container, {
 				sitekey: turnstileSiteKey,
-				callback: "proposalTurnstileCallback",
-				"expired-callback": "proposalTurnstileExpired",
+				callback: (token?: string) => {
+					if (token) {
+						setTurnstileToken(token);
+						setStatus((prev) => (prev.tone === "error" ? emptyStatus : prev));
+					}
+				},
+				"expired-callback": () => {
+					setTurnstileToken("");
+				},
 			});
 			turnstileWidgetId.current = widgetId;
 			container.dataset.turnstileRendered = "true";
@@ -140,25 +146,6 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 		}),
 		[open, close]
 	);
-
-	useEffect(() => {
-		if (typeof window === "undefined") return;
-		window.proposalTurnstileCallback = (token: string) => {
-			setTurnstileToken(token);
-			if (status.tone === "error") {
-				setStatus(emptyStatus);
-			}
-		};
-
-		window.proposalTurnstileExpired = () => {
-			setTurnstileToken("");
-		};
-
-		return () => {
-			window.proposalTurnstileCallback = undefined;
-			window.proposalTurnstileExpired = undefined;
-		};
-	}, [status.tone]);
 
 	const handleSubmit = useCallback(
 		async (event: React.FormEvent<HTMLFormElement>) => {
