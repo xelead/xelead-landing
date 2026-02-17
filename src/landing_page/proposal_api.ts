@@ -15,6 +15,8 @@ const normalizeBaseUrl = (baseUrl: string): string => baseUrl.replace(/\/+$/, ""
 
 const buildEmailUrl = (baseUrl: string): string => {
   const normalized = normalizeBaseUrl(baseUrl);
+  if (!normalized) return "/api/send_email";
+  if (normalized.endsWith("/api")) return `${normalized}/send_email`;
   return `${normalized}/api/send_email`;
 };
 
