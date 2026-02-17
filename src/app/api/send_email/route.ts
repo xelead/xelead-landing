@@ -65,12 +65,19 @@ const getEnv = () => ({
 const jsonResponse = (
 	status: number,
 	body: Record<string, unknown>,
-	corsHeaders: Record<string, string>
-) =>
-	new Response(JSON.stringify(body), {
-		status,
-		headers: { ...corsHeaders, "Content-Type": "application/json" },
-	});
+	corsHeaders: Record<string, string>,
+	requestId?: string
+) => {
+	const headers: Record<string, string> = {
+		...corsHeaders,
+		"Content-Type": "application/json",
+		"X-Send-Email-Handler": "1",
+	};
+	if (requestId) {
+		headers["X-Request-Id"] = requestId;
+	}
+	return new Response(JSON.stringify(body), { status, headers });
+};
 
 export const runtime = "edge";
 
@@ -82,19 +89,21 @@ export async function OPTIONS(request: Request) {
 
 export async function POST(request: Request) {
 	try {
+		const requestId =
+			typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined;
 		const { postmarkServerToken, postmarkFromEmail, postmarkToEmail, corsOrigin, turnstileSecretKey } = getEnv();
 		const corsHeaders = buildCorsHeaders(corsOrigin);
 
 		const contentType = request.headers.get("Content-Type") || "";
 		if (!contentType.includes("application/json")) {
-			return jsonResponse(415, { error: "Content-Type must be application/json" }, corsHeaders);
+			return jsonResponse(415, { error: "Content-Type must be application/json", requestId }, corsHeaders, requestId);
 		}
 
 		let payload: EmailRequest;
 		try {
 			payload = (await request.json()) as EmailRequest;
 		} catch {
-			return jsonResponse(400, { error: "Invalid JSON" }, corsHeaders);
+			return jsonResponse(400, { error: "Invalid JSON", requestId }, corsHeaders, requestId);
 		}
 
 		const name = toSafeString(payload.name);
@@ -104,15 +113,16 @@ export async function POST(request: Request) {
 		const turnstileToken = toSafeString(payload.turnstileToken);
 
 		if (!isWithinLimit(email) || !isWithinLimit(message)) {
-			return jsonResponse(400, { error: "Missing or invalid fields" }, corsHeaders);
+			return jsonResponse(400, { error: "Missing or invalid fields", requestId }, corsHeaders, requestId);
 		}
 
 		if (!isWithinLimit(turnstileToken)) {
-			return jsonResponse(400, { error: "Captcha required" }, corsHeaders);
+			return jsonResponse(400, { error: "Captcha required", requestId }, corsHeaders, requestId);
 		}
 
 		if (!postmarkServerToken || !postmarkFromEmail || !postmarkToEmail || !turnstileSecretKey) {
-			return jsonResponse(500, { error: "Server misconfigured" }, corsHeaders);
+			console.error("send_email error: server misconfigured", { requestId });
+			return jsonResponse(500, { error: "Server misconfigured", requestId }, corsHeaders, requestId);
 		}
 
 		try {
@@ -120,7 +130,8 @@ export async function POST(request: Request) {
 			await verifyTurnstile(turnstileToken, turnstileSecretKey, remoteIp);
 		} catch (err) {
 			const message = err instanceof Error ? err.message : "Captcha verification failed";
-			return jsonResponse(400, { error: message }, corsHeaders);
+			console.error("send_email error: turnstile verify failed", { requestId, message });
+			return jsonResponse(400, { error: message, requestId }, corsHeaders, requestId);
 		}
 
 		const subject = "New landing page inquiry";
@@ -150,18 +161,31 @@ export async function POST(request: Request) {
 			});
 		} catch (err) {
 			const details = err instanceof Error ? err.message : "Network request failed";
-			return jsonResponse(502, { error: "Postmark request failed", details }, corsHeaders);
+			console.error("send_email error: postmark request failed", { requestId, details });
+			return jsonResponse(
+				502,
+				{ error: "Postmark request failed", details, requestId },
+				corsHeaders,
+				requestId
+			);
 		}
 
 		if (!postmarkResponse.ok) {
 			const errorBody = await postmarkResponse.text();
-			return jsonResponse(502, { error: "Failed to send email", details: errorBody }, corsHeaders);
+			console.error("send_email error: postmark response not ok", { requestId, errorBody });
+			return jsonResponse(
+				502,
+				{ error: "Failed to send email", details: errorBody, requestId },
+				corsHeaders,
+				requestId
+			);
 		}
 
-		return jsonResponse(200, { ok: true }, corsHeaders);
+		return jsonResponse(200, { ok: true, requestId }, corsHeaders, requestId);
 	} catch (err) {
 		const corsHeaders = buildCorsHeaders(getEnv().corsOrigin);
 		const details = err instanceof Error ? err.message : "Unknown error";
+		console.error("send_email error: unexpected", { details });
 		return jsonResponse(500, { error: "Internal server error", details }, corsHeaders);
 	}
 }
