@@ -1,22 +1,4 @@
-# Next.js Framework Starter
-
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/next-starter-template)
-
-<!-- dash-content-start -->
-
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). It's deployed on Cloudflare Workers as a [static website](https://developers.cloudflare.com/workers/static-assets/).
-
-This template uses [OpenNext](https://opennext.js.org/) via the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare), which works by taking the Next.js build output and transforming it, so that it can run in Cloudflare Workers.
-
-<!-- dash-content-end -->
-
-Outside of this repo, you can start a new project with this template using [C3](https://developers.cloudflare.com/pages/get-started/c3/) (the `create-cloudflare` CLI):
-
-```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/next-starter-template
-```
-
-A live public deployment of this template is available at [https://next-starter-template.templates.workers.dev](https://next-starter-template.templates.workers.dev)
+# Xelead Landing page
 
 ## Getting Started
 
@@ -24,12 +6,6 @@ First, run:
 
 ```bash
 npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
 ```
 
 Then run the development server (using the package manager of your choice):
@@ -38,26 +14,32 @@ Then run the development server (using the package manager of your choice):
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## CDN And Public Assets
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Public files are saved in CloudFlare's R2.
+To get access key you should do it using R2 UI -> Generate Token (generating from accout won't give you S3 credentials)
+Then configure AWS CLI with a new profile and use it in every AWS command
 
-## Deploying To Production
+Add Cloudflare Profile to AWS if you haven't already:
+```shell
+aws configure --profile xecloudflare
+```
 
-| Command                           | Action                                       |
-| :-------------------------------- | :------------------------------------------- |
-| `npm run build`                   | Build your production site                   |
-| `npm run preview`                 | Preview your build locally, before deploying |
-| `npm run build && npm run deploy` | Deploy your production site to Cloudflare    |
-| `npm wrangler tail`               | View real-time logs for all Workers          |
+Use AWS CLI to sync public assets
+```shell
+aws s3 sync --profile=cloudflare s3://xelead-landing-public ./public \
+  --endpoint-url https://bf692fdb0c7dc998b860c3321df6b8d2.r2.cloudflarestorage.com
+```
 
-## Learn More
+To sync assets from local to CloudFlare
+```shell
+aws s3 sync --profile=cloudflare ./public s3://xelead-landing-public \
+  --endpoint-url https://bf692fdb0c7dc998b860c3321df6b8d2.r2.cloudflarestorage.com
+```
 
-To learn more about Next.js, take a look at the following resources:
+The public URL for CDN is: https://cdn1.xelead.com/
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+You can also serve public assets from your own CDN by setting `VITE_PUBLIC_ASSETS_BASE_URL`
+before running the build or dev server; 
+the site will files from whatever base URL is configured, defaulting back to `/` when the variable is empty.

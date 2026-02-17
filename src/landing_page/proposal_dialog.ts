@@ -128,10 +128,6 @@ export function initProposalDialog(): void {
         }
     });
 
-    dialog.addEventListener("click", (event) => {
-        if (event.target === dialog) dialog.close();
-    });
-
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const emailInput = el("proposalEmail") as HTMLInputElement;

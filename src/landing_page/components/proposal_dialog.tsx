@@ -160,12 +160,6 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 		};
 	}, [status.tone]);
 
-	const handleDialogClick = useCallback((event: React.MouseEvent<HTMLDialogElement>) => {
-		if (event.target === event.currentTarget) {
-			close();
-		}
-	}, [close]);
-
 	const handleSubmit = useCallback(
 		async (event: React.FormEvent<HTMLFormElement>) => {
 			event.preventDefault();
@@ -212,7 +206,6 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 			data-api-base-url={apiBaseUrl}
 			aria-labelledby="proposalTitle"
 			ref={dialogRef}
-			onClick={handleDialogClick}
 			onClose={() => setIsOpen(false)}
 		>
 			<div className="proposal-shell">
