@@ -252,9 +252,6 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 							<div
 								ref={captchaRef}
 								className="cf-turnstile"
-								data-sitekey={turnstileSiteKey}
-								data-callback="proposalTurnstileCallback"
-								data-expired-callback="proposalTurnstileExpired"
 							></div>
 						) : (
 							<span>Turnstile site key missing.</span>
