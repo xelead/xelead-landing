@@ -18,9 +18,9 @@ export const metadata: Metadata = {
 	title: "Xelead | Custom AI Applications",
 	description: "Custom AI applications for modern businesses.",
 	icons: {
-		icon: `${assetsBaseUrl}/files/images/favicon/xelead_favicon.png`,
-		shortcut: `${assetsBaseUrl}/files/images/favicon/xelead_favicon.png`,
-		apple: `${assetsBaseUrl}/files/images/favicon/xelead_favicon.png`,
+		icon: `${assetsBaseUrl}/files/images/favicon/fav_icon.png`,
+		shortcut: `${assetsBaseUrl}/files/images/favicon/fav_icon.png`,
+		apple: `${assetsBaseUrl}/files/images/favicon/fav_icon.png`,
 	},
 };
 
