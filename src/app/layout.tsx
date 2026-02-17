@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 const assetsBaseUrl = (process.env.NEXT_PUBLIC_ASSETS_BASE_URL || "").replace(/\/$/, "");
+console.log("Assets are served from:", assetsBaseUrl)
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
