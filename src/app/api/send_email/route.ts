@@ -62,6 +62,16 @@ const getEnv = () => ({
 	turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY,
 });
 
+const jsonResponse = (
+	status: number,
+	body: Record<string, unknown>,
+	corsHeaders: Record<string, string>
+) =>
+	new Response(JSON.stringify(body), {
+		status,
+		headers: { ...corsHeaders, "Content-Type": "application/json" },
+	});
+
 export const runtime = "edge";
 
 export async function OPTIONS(request: Request) {
@@ -71,99 +81,87 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function POST(request: Request) {
-	const { postmarkServerToken, postmarkFromEmail, postmarkToEmail, corsOrigin, turnstileSecretKey } = getEnv();
-	const corsHeaders = buildCorsHeaders(corsOrigin);
-
-	const contentType = request.headers.get("Content-Type") || "";
-	if (!contentType.includes("application/json")) {
-		return new Response(JSON.stringify({ error: "Content-Type must be application/json" }), {
-			status: 415,
-			headers: { ...corsHeaders, "Content-Type": "application/json" },
-		});
-	}
-
-	let payload: EmailRequest;
 	try {
-		payload = (await request.json()) as EmailRequest;
-	} catch {
-		return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-			status: 400,
-			headers: { ...corsHeaders, "Content-Type": "application/json" },
-		});
-	}
+		const { postmarkServerToken, postmarkFromEmail, postmarkToEmail, corsOrigin, turnstileSecretKey } = getEnv();
+		const corsHeaders = buildCorsHeaders(corsOrigin);
 
-	const name = toSafeString(payload.name);
-	const email = toSafeString(payload.email);
-	const message = toSafeString(payload.message);
-	const company = toSafeString(payload.company);
-	const turnstileToken = toSafeString(payload.turnstileToken);
+		const contentType = request.headers.get("Content-Type") || "";
+		if (!contentType.includes("application/json")) {
+			return jsonResponse(415, { error: "Content-Type must be application/json" }, corsHeaders);
+		}
 
-	if (!isWithinLimit(email) || !isWithinLimit(message)) {
-		return new Response(JSON.stringify({ error: "Missing or invalid fields" }), {
-			status: 400,
-			headers: { ...corsHeaders, "Content-Type": "application/json" },
-		});
-	}
+		let payload: EmailRequest;
+		try {
+			payload = (await request.json()) as EmailRequest;
+		} catch {
+			return jsonResponse(400, { error: "Invalid JSON" }, corsHeaders);
+		}
 
-	if (!isWithinLimit(turnstileToken)) {
-		return new Response(JSON.stringify({ error: "Captcha required" }), {
-			status: 400,
-			headers: { ...corsHeaders, "Content-Type": "application/json" },
-		});
-	}
+		const name = toSafeString(payload.name);
+		const email = toSafeString(payload.email);
+		const message = toSafeString(payload.message);
+		const company = toSafeString(payload.company);
+		const turnstileToken = toSafeString(payload.turnstileToken);
 
-	if (!postmarkServerToken || !postmarkFromEmail || !postmarkToEmail || !turnstileSecretKey) {
-		return new Response(JSON.stringify({ error: "Server misconfigured" }), {
-			status: 500,
-			headers: { ...corsHeaders, "Content-Type": "application/json" },
-		});
-	}
+		if (!isWithinLimit(email) || !isWithinLimit(message)) {
+			return jsonResponse(400, { error: "Missing or invalid fields" }, corsHeaders);
+		}
 
-	try {
-		const remoteIp = request.headers.get("CF-Connecting-IP");
-		await verifyTurnstile(turnstileToken, turnstileSecretKey, remoteIp);
+		if (!isWithinLimit(turnstileToken)) {
+			return jsonResponse(400, { error: "Captcha required" }, corsHeaders);
+		}
+
+		if (!postmarkServerToken || !postmarkFromEmail || !postmarkToEmail || !turnstileSecretKey) {
+			return jsonResponse(500, { error: "Server misconfigured" }, corsHeaders);
+		}
+
+		try {
+			const remoteIp = request.headers.get("CF-Connecting-IP");
+			await verifyTurnstile(turnstileToken, turnstileSecretKey, remoteIp);
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Captcha verification failed";
+			return jsonResponse(400, { error: message }, corsHeaders);
+		}
+
+		const subject = "New landing page inquiry";
+		const textLines = [
+			`Name: ${name || "Proposal request"}`,
+			`Email: ${email}`,
+			company ? `Company: ${company}` : null,
+			"",
+			message,
+		].filter(Boolean);
+
+		let postmarkResponse: Response;
+		try {
+			postmarkResponse = await fetch("https://api.postmarkapp.com/email", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"X-Postmark-Server-Token": postmarkServerToken,
+				},
+				body: JSON.stringify({
+					From: postmarkFromEmail,
+					To: postmarkToEmail,
+					ReplyTo: email,
+					Subject: subject,
+					TextBody: textLines.join("\n"),
+				}),
+			});
+		} catch (err) {
+			const details = err instanceof Error ? err.message : "Network request failed";
+			return jsonResponse(502, { error: "Postmark request failed", details }, corsHeaders);
+		}
+
+		if (!postmarkResponse.ok) {
+			const errorBody = await postmarkResponse.text();
+			return jsonResponse(502, { error: "Failed to send email", details: errorBody }, corsHeaders);
+		}
+
+		return jsonResponse(200, { ok: true }, corsHeaders);
 	} catch (err) {
-		const message = err instanceof Error ? err.message : "Captcha verification failed";
-		return new Response(JSON.stringify({ error: message }), {
-			status: 400,
-			headers: { ...corsHeaders, "Content-Type": "application/json" },
-		});
+		const corsHeaders = buildCorsHeaders(getEnv().corsOrigin);
+		const details = err instanceof Error ? err.message : "Unknown error";
+		return jsonResponse(500, { error: "Internal server error", details }, corsHeaders);
 	}
-
-	const subject = "New landing page inquiry";
-	const textLines = [
-		`Name: ${name || "Proposal request"}`,
-		`Email: ${email}`,
-		company ? `Company: ${company}` : null,
-		"",
-		message,
-	].filter(Boolean);
-
-	const postmarkResponse = await fetch("https://api.postmarkapp.com/email", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			"X-Postmark-Server-Token": postmarkServerToken,
-		},
-		body: JSON.stringify({
-			From: postmarkFromEmail,
-			To: postmarkToEmail,
-			ReplyTo: email,
-			Subject: subject,
-			TextBody: textLines.join("\n"),
-		}),
-	});
-
-	if (!postmarkResponse.ok) {
-		const errorBody = await postmarkResponse.text();
-		return new Response(JSON.stringify({ error: "Failed to send email", details: errorBody }), {
-			status: 502,
-			headers: { ...corsHeaders, "Content-Type": "application/json" },
-		});
-	}
-
-	return new Response(JSON.stringify({ ok: true }), {
-		status: 200,
-		headers: { ...corsHeaders, "Content-Type": "application/json" },
-	});
 }
