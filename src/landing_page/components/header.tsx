@@ -5,12 +5,14 @@ type HeaderProps = {
 };
 
 export default function Header({ phone, email, onProposal }: HeaderProps) {
+	const assetsBaseUrl = (process.env.NEXT_PUBLIC_ASSETS_BASE_URL || "").replace(/\/$/, "");
+
 	return (
 		<header className="container">
 			<div className="row between gap-16">
 				<div className="brand">
 					<div className="logo">
-						<img src="/files/images/logo/xelead_logo.png" alt="Xelead logo" />
+						<img src={`${assetsBaseUrl}/files/images/logo/xelead_logo.png`} alt="Xelead logo" />
 					</div>
 					<div>
 						<h1>Xelead</h1>

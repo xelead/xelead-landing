@@ -6,7 +6,7 @@ This folder holds modular landing page behavior. The proposal dialog lives in `p
 - A Cloudflare Turnstile site key in the dialog markup.
 - A Next.js App Router endpoint at `/api/send_email` for email delivery.
 
-The dialog reads `VITE_TURNSTILE_SITE_KEY` and `VITE_API_BASE_URL` from `src/landing_page/config.ts` by default, and HTML `data-*` attributes can override them (`data-api-base-url`).
+The dialog reads `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `VITE_API_BASE_URL` from `src/landing_page/config.ts` by default, and HTML `data-*` attributes can override them (`data-api-base-url`).
 
 ## Next.js Landing Components
 

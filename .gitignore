@@ -205,3 +205,7 @@ next-env.d.ts
 
 .idea/
 .vscode/
+
+# removing public files
+public/
+
