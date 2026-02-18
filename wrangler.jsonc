@@ -21,5 +21,22 @@
 		"NEXT_PUBLIC_API_BASE_URL": "https://xelead.com",
 		"POSTMARK_FROM_EMAIL": "website@xelead.com",
 		"POSTMARK_TO_EMAIL": "dev@xelead.com"
-	}
+	},
+	"secrets_store_secrets": [
+		{
+			"binding": "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
+			"store_id": "a403174350884c5b90199803e59f51a4",
+			"secret_name": "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
+		},
+		{
+			"binding": "POSTMARK_SERVER_TOKEN",
+			"store_id": "a403174350884c5b90199803e59f51a4",
+			"secret_name": "POSTMARK_SERVER_TOKEN"
+		},
+		{
+			"binding": "TURNSTILE_SECRET_KEY",
+			"store_id": "a403174350884c5b90199803e59f51a4",
+			"secret_name": "TURNSTILE_SECRET_KEY"
+		}
+	]
 }
