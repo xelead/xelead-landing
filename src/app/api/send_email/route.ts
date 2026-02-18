@@ -242,7 +242,28 @@ export async function POST(request: Request) {
 			);
 		}
 
-		return jsonResponse(200, { ok: true, requestId }, corsHeaders, requestId);
+		let postmarkPayload:
+			| { MessageID?: string; Message?: string; ErrorCode?: number; To?: string; SubmittedAt?: string }
+			| undefined;
+		try {
+			postmarkPayload = (await postmarkResponse.json()) as {
+				MessageID?: string;
+				Message?: string;
+				ErrorCode?: number;
+				To?: string;
+				SubmittedAt?: string;
+			};
+		} catch {
+			postmarkPayload = undefined;
+		}
+		console.log("send_email info: postmark accepted", { requestId, postmarkPayload });
+
+		return jsonResponse(
+			200,
+			{ ok: true, requestId, messageId: postmarkPayload?.MessageID },
+			corsHeaders,
+			requestId
+		);
 	} catch (err) {
 		const env = await getEnv()
 		const corsHeaders = buildCorsHeaders(env.corsOrigin);
