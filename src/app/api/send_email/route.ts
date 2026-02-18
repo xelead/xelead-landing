@@ -57,10 +57,7 @@ const verifyTurnstile = async (
 		params.set("remoteip", remoteIp);
 	}
 	
-	console.log("verifying turnstile with these values:", {
-		requestId,
-		params
-	})
+	console.log(`verifying turnstile with these values: ${secret}: ${token}`)
 
 	const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
 		method: "POST",
