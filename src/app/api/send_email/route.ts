@@ -45,14 +45,15 @@ const toSafeString = (value: unknown) => {
 const isWithinLimit = (value: string) => value.length > 0 && value.length <= MAX_FIELD_LENGTH;
 
 async function toEnvString(value: unknown): Promise<string> {
-	if (typeof value === "string") return value
+	if (typeof value === "string") return value;
 	// Cloud Flare secrets should be get using .get() method: https://developers.cloudflare.com/secrets-store/integrations/workers/
-	// @ts-ignore
-	if (value.get !== undefined) {
-		// @ts-ignore
-		return await value.get()
-	} 
-	return ""
+	if (value && typeof value === "object" && "get" in value) {
+		const getter = (value as { get?: () => Promise<string> | string }).get;
+		if (typeof getter === "function") {
+			return await getter();
+		}
+	}
+	return "";
 }
 
 const verifyTurnstile = async (
@@ -246,7 +247,8 @@ export async function POST(request: Request) {
 		const env = await getEnv()
 		const corsHeaders = buildCorsHeaders(env.corsOrigin);
 		const details = err instanceof Error ? err.message : "Unknown error";
-		console.error("send_email error: unexpected", { details });
+		const stack = err instanceof Error ? err.stack : undefined;
+		console.error("send_email error: unexpected", { details, stack });
 		return jsonResponse(500, { error: "Internal server error", details }, corsHeaders);
 	}
 }
