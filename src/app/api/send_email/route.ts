@@ -64,22 +64,23 @@ const verifyTurnstile = async (token: string, secret: string, remoteIp?: string 
 	}
 };
 
-const getWorkerEnv = (): WorkerEnv | undefined => {
+const getWorkerEnv = (): WorkerEnv | NodeJS.ProcessEnv => {
 	try {
 		return getCloudflareContext().env as WorkerEnv;
 	} catch {
-		return undefined;
+		console.log("Worker environment not available, falling back to process.env");
+		return process.env;
 	}
 };
 
 const getEnv = () => {
 	const workerEnv = getWorkerEnv();
 	return {
-		postmarkServerToken: workerEnv?.POSTMARK_SERVER_TOKEN ?? process.env.POSTMARK_SERVER_TOKEN,
-		postmarkFromEmail: workerEnv?.POSTMARK_FROM_EMAIL ?? process.env.POSTMARK_FROM_EMAIL,
-		postmarkToEmail: workerEnv?.POSTMARK_TO_EMAIL ?? process.env.POSTMARK_TO_EMAIL,
-		corsOrigin: workerEnv?.CORS_ORIGIN ?? process.env.CORS_ORIGIN,
-		turnstileSecretKey: workerEnv?.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
+		postmarkServerToken: workerEnv?.POSTMARK_SERVER_TOKEN,
+		postmarkFromEmail: workerEnv?.POSTMARK_FROM_EMAIL,
+		postmarkToEmail: workerEnv?.POSTMARK_TO_EMAIL,
+		corsOrigin: workerEnv?.CORS_ORIGIN,
+		turnstileSecretKey: workerEnv?.TURNSTILE_SECRET_KEY,
 	};
 };
 
