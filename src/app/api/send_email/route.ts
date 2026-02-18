@@ -79,8 +79,6 @@ const jsonResponse = (
 	return new Response(JSON.stringify(body), { status, headers });
 };
 
-export const runtime = "edge";
-
 export async function OPTIONS(request: Request) {
 	const { corsOrigin } = getEnv();
 	const corsHeaders = buildCorsHeaders(corsOrigin);
