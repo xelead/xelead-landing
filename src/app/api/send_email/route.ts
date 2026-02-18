@@ -44,6 +44,14 @@ const toSafeString = (value: unknown) => {
 
 const isWithinLimit = (value: string) => value.length > 0 && value.length <= MAX_FIELD_LENGTH;
 
+function toEnvString(value: unknown): string {
+	if (typeof value === "string") return value
+	// Cloud Flare secrets should be get using .get() method: https://developers.cloudflare.com/secrets-store/integrations/workers/
+	// @ts-ignore
+	if (value.get !== undefined) return String(value.get())
+	return ""
+}
+
 const verifyTurnstile = async (
 	token: string,
 	secret: string,
@@ -56,8 +64,6 @@ const verifyTurnstile = async (
 	if (remoteIp) {
 		params.set("remoteip", remoteIp);
 	}
-	
-	console.log(`verifying turnstile with these values: ${secret}: ${token}`)
 
 	const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
 		method: "POST",
@@ -106,11 +112,11 @@ const getWorkerEnv = (): WorkerEnv | NodeJS.ProcessEnv => {
 const getEnv = () => {
 	const workerEnv = getWorkerEnv();
 	return {
-		postmarkServerToken: workerEnv?.POSTMARK_SERVER_TOKEN,
-		postmarkFromEmail: workerEnv?.POSTMARK_FROM_EMAIL,
-		postmarkToEmail: workerEnv?.POSTMARK_TO_EMAIL,
-		corsOrigin: workerEnv?.CORS_ORIGIN,
-		turnstileSecretKey: workerEnv?.TURNSTILE_SECRET_KEY,
+		postmarkServerToken: toEnvString(workerEnv?.POSTMARK_SERVER_TOKEN),
+		postmarkFromEmail: toEnvString(workerEnv?.POSTMARK_FROM_EMAIL),
+		postmarkToEmail: toEnvString(workerEnv?.POSTMARK_TO_EMAIL),
+		corsOrigin: toEnvString(workerEnv?.CORS_ORIGIN),
+		turnstileSecretKey: toEnvString(workerEnv?.TURNSTILE_SECRET_KEY),
 	};
 };
 
