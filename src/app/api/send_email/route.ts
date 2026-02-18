@@ -1,3 +1,5 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
 type EmailRequest = {
 	name?: string;
 	email: string;
@@ -9,6 +11,14 @@ type EmailRequest = {
 type TurnstileResponse = {
 	success: boolean;
 	"error-codes"?: string[];
+};
+
+type WorkerEnv = {
+	POSTMARK_SERVER_TOKEN?: string;
+	POSTMARK_FROM_EMAIL?: string;
+	POSTMARK_TO_EMAIL?: string;
+	CORS_ORIGIN?: string;
+	TURNSTILE_SECRET_KEY?: string;
 };
 
 const MAX_FIELD_LENGTH = 5000;
@@ -54,13 +64,24 @@ const verifyTurnstile = async (token: string, secret: string, remoteIp?: string 
 	}
 };
 
-const getEnv = () => ({
-	postmarkServerToken: process.env.POSTMARK_SERVER_TOKEN,
-	postmarkFromEmail: process.env.POSTMARK_FROM_EMAIL,
-	postmarkToEmail: process.env.POSTMARK_TO_EMAIL,
-	corsOrigin: process.env.CORS_ORIGIN,
-	turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY,
-});
+const getWorkerEnv = (): WorkerEnv | undefined => {
+	try {
+		return getCloudflareContext().env as WorkerEnv;
+	} catch {
+		return undefined;
+	}
+};
+
+const getEnv = () => {
+	const workerEnv = getWorkerEnv();
+	return {
+		postmarkServerToken: workerEnv?.POSTMARK_SERVER_TOKEN ?? process.env.POSTMARK_SERVER_TOKEN,
+		postmarkFromEmail: workerEnv?.POSTMARK_FROM_EMAIL ?? process.env.POSTMARK_FROM_EMAIL,
+		postmarkToEmail: workerEnv?.POSTMARK_TO_EMAIL ?? process.env.POSTMARK_TO_EMAIL,
+		corsOrigin: workerEnv?.CORS_ORIGIN ?? process.env.CORS_ORIGIN,
+		turnstileSecretKey: workerEnv?.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
+	};
+};
 
 const jsonResponse = (
 	status: number,
