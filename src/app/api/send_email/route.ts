@@ -11,6 +11,10 @@ type EmailRequest = {
 type TurnstileResponse = {
 	success: boolean;
 	"error-codes"?: string[];
+	challenge_ts?: string;
+	hostname?: string;
+	action?: string;
+	cdata?: string;
 };
 
 type WorkerEnv = {
@@ -40,7 +44,12 @@ const toSafeString = (value: unknown) => {
 
 const isWithinLimit = (value: string) => value.length > 0 && value.length <= MAX_FIELD_LENGTH;
 
-const verifyTurnstile = async (token: string, secret: string, remoteIp?: string | null) => {
+const verifyTurnstile = async (
+	token: string,
+	secret: string,
+	requestId?: string,
+	remoteIp?: string | null
+) => {
 	const params = new URLSearchParams();
 	params.set("secret", secret);
 	params.set("response", token);
@@ -54,12 +63,31 @@ const verifyTurnstile = async (token: string, secret: string, remoteIp?: string 
 	});
 
 	if (!response.ok) {
+		let bodyText = "";
+		try {
+			bodyText = await response.text();
+		} catch {
+			bodyText = "";
+		}
+		console.error("send_email error: turnstile verify http error", {
+			requestId,
+			status: response.status,
+			statusText: response.statusText,
+			bodyText,
+		});
 		throw new Error("Turnstile verification failed");
 	}
 
 	const data = (await response.json()) as TurnstileResponse;
 	if (!data.success) {
 		const errors = data["error-codes"]?.join(", ") || "unknown";
+		console.error("send_email error: turnstile rejected", {
+			requestId,
+			errors,
+			hostname: data.hostname,
+			action: data.action,
+			challengeTs: data.challenge_ts,
+		});
 		throw new Error(`Turnstile rejected: ${errors}`);
 	}
 };
@@ -148,7 +176,7 @@ export async function POST(request: Request) {
 
 		try {
 			const remoteIp = request.headers.get("CF-Connecting-IP");
-			await verifyTurnstile(turnstileToken, turnstileSecretKey, remoteIp);
+			await verifyTurnstile(turnstileToken, turnstileSecretKey, requestId, remoteIp);
 		} catch (err) {
 			const message = err instanceof Error ? err.message : "Captcha verification failed";
 			console.error("send_email error: turnstile verify failed", { requestId, message });
