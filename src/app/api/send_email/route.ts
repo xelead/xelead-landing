@@ -141,7 +141,7 @@ const jsonResponse = (
 };
 
 export async function OPTIONS(request: Request) {
-	const { corsOrigin } = getEnv();
+	const { corsOrigin } = await getEnv();
 	const corsHeaders = buildCorsHeaders(corsOrigin);
 	return new Response(null, { status: 204, headers: corsHeaders });
 }
@@ -243,7 +243,8 @@ export async function POST(request: Request) {
 
 		return jsonResponse(200, { ok: true, requestId }, corsHeaders, requestId);
 	} catch (err) {
-		const corsHeaders = buildCorsHeaders(getEnv().corsOrigin);
+		const env = await getEnv()
+		const corsHeaders = buildCorsHeaders(env.corsOrigin);
 		const details = err instanceof Error ? err.message : "Unknown error";
 		console.error("send_email error: unexpected", { details });
 		return jsonResponse(500, { error: "Internal server error", details }, corsHeaders);
