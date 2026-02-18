@@ -87,6 +87,7 @@ export async function OPTIONS(request: Request) {
 
 export async function POST(request: Request) {
 	try {
+		console.log("send_email request received");
 		const requestId =
 			typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined;
 		const { postmarkServerToken, postmarkFromEmail, postmarkToEmail, corsOrigin, turnstileSecretKey } = getEnv();
