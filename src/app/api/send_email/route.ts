@@ -1,4 +1,5 @@
 import {getCloudflareContext} from "@opennextjs/cloudflare";
+import postmark from "postmark";
 
 type EmailRequest = {
 	name?: string;
@@ -204,21 +205,17 @@ export async function POST(request: Request) {
 			message,
 		].filter(Boolean);
 
-		let postmarkResponse: Response;
+		let postmarkPayload:
+			| { MessageID?: string; Message?: string; ErrorCode?: number; To?: string; SubmittedAt?: string }
+			| undefined;
 		try {
-			postmarkResponse = await fetch("https://api.postmarkapp.com/email", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					"X-Postmark-Server-Token": postmarkServerToken,
-				},
-				body: JSON.stringify({
-					From: postmarkFromEmail,
-					To: postmarkToEmail,
-					ReplyTo: email,
-					Subject: subject,
-					TextBody: textLines.join("\n"),
-				}),
+			const client = new postmark.ServerClient(postmarkServerToken);
+			postmarkPayload = await client.sendEmail({
+				From: postmarkFromEmail,
+				To: postmarkToEmail,
+				ReplyTo: email,
+				Subject: subject,
+				TextBody: textLines.join("\n"),
 			});
 		} catch (err) {
 			const details = err instanceof Error ? err.message : "Network request failed";
@@ -231,30 +228,16 @@ export async function POST(request: Request) {
 			);
 		}
 
-		if (!postmarkResponse.ok) {
-			const errorBody = await postmarkResponse.text();
-			console.error("send_email error: postmark response not ok", { requestId, errorBody });
+		if (!postmarkPayload || (typeof postmarkPayload.ErrorCode === "number" && postmarkPayload.ErrorCode !== 0)) {
+			const errorDetails =
+				typeof postmarkPayload?.Message === "string" ? postmarkPayload.Message : "Postmark error";
+			console.error("send_email error: postmark response not ok", { requestId, errorDetails });
 			return jsonResponse(
 				502,
-				{ error: "Failed to send email", details: errorBody, requestId },
+				{ error: "Failed to send email", details: errorDetails, requestId },
 				corsHeaders,
 				requestId
 			);
-		}
-
-		let postmarkPayload:
-			| { MessageID?: string; Message?: string; ErrorCode?: number; To?: string; SubmittedAt?: string }
-			| undefined;
-		try {
-			postmarkPayload = (await postmarkResponse.json()) as {
-				MessageID?: string;
-				Message?: string;
-				ErrorCode?: number;
-				To?: string;
-				SubmittedAt?: string;
-			};
-		} catch {
-			postmarkPayload = undefined;
 		}
 		console.log("send_email info: postmark accepted", { requestId, postmarkPayload });
 
