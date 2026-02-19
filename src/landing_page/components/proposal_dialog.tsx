@@ -8,7 +8,7 @@ import {
 } from "react";
 
 import { sendProposalEmail } from "../proposal_api";
-import { useLandingPageConfig } from "../use_landing_page_config";
+import { usePublicUiConfigValue } from "../use_landing_page_config";
 
 declare global {
 	interface Window {
@@ -46,7 +46,8 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 	const [busy, setBusy] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 
-	const { apiBaseUrl, turnstileSiteKey } = useLandingPageConfig();
+	const apiBaseUrl = usePublicUiConfigValue("NEXT_PUBLIC_API_BASE_URL");
+	const turnstileSiteKey = usePublicUiConfigValue("NEXT_PUBLIC_TURNSTILE_SITE_KEY");
 
 	const resetForm = useCallback(() => {
 		setEmail("");

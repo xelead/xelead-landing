@@ -1,4 +1,4 @@
-import { getLandingPageConfig } from "./config";
+import { getPublicUiConfigValue } from "./config";
 import { sendProposalEmail } from "./proposal_api";
 
 type ProposalConfig = {
@@ -34,7 +34,7 @@ function el(id: string): HTMLElement {
 }
 
 function readDialogConfig(dialog: HTMLDialogElement): ProposalConfig {
-    const defaultApiBaseUrl = getLandingPageConfig().apiBaseUrl;
+    const defaultApiBaseUrl = getPublicUiConfigValue("NEXT_PUBLIC_API_BASE_URL");
     const apiBaseUrl = dialog.getAttribute("data-api-base-url")?.trim() || defaultApiBaseUrl;
     return {
         apiBaseUrl,
@@ -78,7 +78,7 @@ function wireTurnstile(form: HTMLFormElement, statusNode: HTMLParagraphElement):
 
     if (!widget || !tokenInput) return;
 
-    const defaultSiteKey = getLandingPageConfig().turnstileSiteKey;
+    const defaultSiteKey = getPublicUiConfigValue("NEXT_PUBLIC_TURNSTILE_SITE_KEY");
     const siteKey = widget.getAttribute("data-sitekey")?.trim() || defaultSiteKey;
     if (siteKey) {
         widget.setAttribute("data-sitekey", siteKey);
