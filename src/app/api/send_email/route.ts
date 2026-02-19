@@ -1,5 +1,5 @@
-import {getCloudflareContext} from "@opennextjs/cloudflare";
-import postmark from "postmark";
+import {buildCorsHeaders, getEnv} from "./env_helpers";
+import {EmailProviderError, getEmailConfigIssues, resolveEmailProvider, resolveFromTo} from "./email_provider";
 
 type EmailRequest = {
 	name?: string;
@@ -18,25 +18,7 @@ type TurnstileResponse = {
 	cdata?: string;
 };
 
-type WorkerEnv = {
-	POSTMARK_SERVER_TOKEN?: string;
-	POSTMARK_FROM_EMAIL?: string;
-	POSTMARK_TO_EMAIL?: string;
-	CORS_ORIGIN?: string;
-	TURNSTILE_SECRET_KEY?: string;
-};
-
 const MAX_FIELD_LENGTH = 5000;
-
-const buildCorsHeaders = (origin?: string) => {
-	const allowOrigin = origin && origin.length > 0 ? origin : "*";
-	return {
-		"Access-Control-Allow-Origin": allowOrigin,
-		"Access-Control-Allow-Methods": "POST, OPTIONS",
-		"Access-Control-Allow-Headers": "Content-Type",
-		"Access-Control-Max-Age": "86400",
-	};
-};
 
 const toSafeString = (value: unknown) => {
 	if (typeof value !== "string") return "";
@@ -44,19 +26,6 @@ const toSafeString = (value: unknown) => {
 };
 
 const isWithinLimit = (value: string) => value.length > 0 && value.length <= MAX_FIELD_LENGTH;
-
-async function toEnvString(value: unknown): Promise<string> {
-	if (typeof value === "string") return value;
-	// Cloud Flare secrets should be get using .get() method: https://developers.cloudflare.com/secrets-store/integrations/workers/
-	if (value && typeof value === "object" && "get" in value) {
-		const getter = (value as { get?: () => Promise<string> | string }).get;
-		if (typeof getter === "function") {
-			return await getter();
-		}
-	}
-	return "";
-}
-
 const verifyTurnstile = async (
 	token: string,
 	secret: string,
@@ -105,26 +74,6 @@ const verifyTurnstile = async (
 	}
 };
 
-const getWorkerEnv = (): WorkerEnv | NodeJS.ProcessEnv => {
-	try {
-		return getCloudflareContext().env as WorkerEnv;
-	} catch {
-		console.log("Worker environment not available, falling back to process.env");
-		return process.env;
-	}
-};
-
-const getEnv = async () => {
-	const workerEnv = getWorkerEnv();
-	return {
-		postmarkServerToken: await toEnvString(workerEnv?.POSTMARK_SERVER_TOKEN),
-		postmarkFromEmail: await toEnvString(workerEnv?.POSTMARK_FROM_EMAIL),
-		postmarkToEmail: await toEnvString(workerEnv?.POSTMARK_TO_EMAIL),
-		corsOrigin: await toEnvString(workerEnv?.CORS_ORIGIN),
-		turnstileSecretKey: await toEnvString(workerEnv?.TURNSTILE_SECRET_KEY),
-	};
-};
-
 const jsonResponse = (
 	status: number,
 	body: Record<string, unknown>,
@@ -153,8 +102,8 @@ export async function POST(request: Request) {
 		console.log("send_email request received");
 		const requestId =
 			typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined;
-		const { postmarkServerToken, postmarkFromEmail, postmarkToEmail, corsOrigin, turnstileSecretKey } = await getEnv();
-		const corsHeaders = buildCorsHeaders(corsOrigin);
+		const env = await getEnv();
+		const corsHeaders = buildCorsHeaders(env.corsOrigin);
 
 		const contentType = request.headers.get("Content-Type") || "";
 		if (!contentType.includes("application/json")) {
@@ -182,14 +131,23 @@ export async function POST(request: Request) {
 			return jsonResponse(400, { error: "Captcha required", requestId }, corsHeaders, requestId);
 		}
 
-		if (!postmarkServerToken || !postmarkFromEmail || !postmarkToEmail || !turnstileSecretKey) {
-			console.error("send_email error: server misconfigured", { requestId });
-			return jsonResponse(500, { error: "Server misconfigured", requestId }, corsHeaders, requestId);
+		const configIssues = getEmailConfigIssues(env);
+		if (!env.turnstileSecretKey) {
+			configIssues.push("Missing TURNSTILE_SECRET_KEY");
+		}
+		if (configIssues.length > 0) {
+			console.error("send_email error: server misconfigured", { requestId, configIssues });
+			return jsonResponse(
+				500,
+				{ error: "Server misconfigured", details: configIssues, requestId },
+				corsHeaders,
+				requestId
+			);
 		}
 
 		try {
 			const remoteIp = request.headers.get("CF-Connecting-IP");
-			await verifyTurnstile(turnstileToken, turnstileSecretKey, requestId, remoteIp);
+			await verifyTurnstile(turnstileToken, env.turnstileSecretKey, requestId, remoteIp);
 		} catch (err) {
 			const message = err instanceof Error ? err.message : "Captcha verification failed";
 			console.error("send_email error: turnstile verify failed", { requestId, message });
@@ -205,51 +163,44 @@ export async function POST(request: Request) {
 			message,
 		].filter(Boolean);
 
-		let postmarkPayload:
-			| { MessageID?: string; Message?: string; ErrorCode?: number; To?: string; SubmittedAt?: string }
-			| undefined;
+		const { fromEmail, toEmail } = resolveFromTo(env);
+		const emailProvider = await resolveEmailProvider(env);
+		let sendResult: { messageId?: string } | undefined;
 		try {
-			const client = new postmark.ServerClient(postmarkServerToken);
-			postmarkPayload = await client.sendEmail({
-				From: postmarkFromEmail,
-				To: postmarkToEmail,
-				ReplyTo: email,
-				Subject: subject,
-				MessageStream: "user-management",
-				TextBody: textLines.join("\n"),
-			});
+			sendResult = await emailProvider.sendEmail(
+				{
+					from: fromEmail,
+					to: toEmail,
+					replyTo: email,
+					subject,
+					text: textLines.join("\n"),
+				},
+				requestId
+			);
 		} catch (err) {
-			const details = err instanceof Error ? err.message : "Network request failed";
-			console.error("send_email error: postmark request failed", { requestId, details });
+			const details =
+				err instanceof EmailProviderError && err.details
+					? err.details
+					: err instanceof Error
+						? err.message
+						: "Network request failed";
+			console.error("send_email error: provider request failed", { requestId, details });
 			return jsonResponse(
 				502,
-				{ error: "Postmark request failed", details, requestId },
+				{ error: "Email provider request failed", details, requestId },
 				corsHeaders,
 				requestId
 			);
 		}
-
-		if (!postmarkPayload || (typeof postmarkPayload.ErrorCode === "number" && postmarkPayload.ErrorCode !== 0)) {
-			const errorDetails =
-				typeof postmarkPayload?.Message === "string" ? postmarkPayload.Message : "Postmark error";
-			console.error("send_email error: postmark response not ok", { requestId, errorDetails });
-			return jsonResponse(
-				502,
-				{ error: "Failed to send email", details: errorDetails, requestId },
-				corsHeaders,
-				requestId
-			);
-		}
-		console.log("send_email info: postmark accepted", { requestId, postmarkPayload });
 
 		return jsonResponse(
 			200,
-			{ ok: true, requestId, messageId: postmarkPayload?.MessageID },
+			{ ok: true, requestId, messageId: sendResult?.messageId },
 			corsHeaders,
 			requestId
 		);
 	} catch (err) {
-		const env = await getEnv()
+		const env = await getEnv();
 		const corsHeaders = buildCorsHeaders(env.corsOrigin);
 		const details = err instanceof Error ? err.message : "Unknown error";
 		const stack = err instanceof Error ? err.stack : undefined;
