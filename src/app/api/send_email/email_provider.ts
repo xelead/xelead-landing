@@ -1,4 +1,4 @@
-import {getEnvString} from "./env_helpers";
+import {getEnvBoolean, getEnvNumber, getEnvString} from "./env_helpers";
 import {createNodemailerProvider} from "./nodemailer_provider";
 import {createPostmarkProvider} from "./postmark_provider";
 import {createSesProvider} from "./ses_provider";
@@ -45,22 +45,6 @@ const getProvider = async (): Promise<EmailProviderName> => {
 	return normalizeProvider(await getEnvString("EMAIL_PROVIDER"));
 };
 
-const getEnvNumber = async (key: Parameters<typeof getEnvString>[0]) => {
-	const raw = await getEnvString(key);
-	if (!raw) return undefined;
-	const parsed = Number(raw);
-	if (!Number.isFinite(parsed)) return undefined;
-	return parsed;
-};
-
-const getEnvBoolean = async (key: Parameters<typeof getEnvString>[0]) => {
-	const raw = (await getEnvString(key)).trim();
-	if (!raw) return undefined;
-	const normalized = raw.toLowerCase();
-	if (["true", "1", "yes", "on"].includes(normalized)) return true;
-	if (["false", "0", "no", "off"].includes(normalized)) return false;
-	return undefined;
-};
 
 export const getEmailConfigIssues = async () => {
 	const issues: string[] = [];
