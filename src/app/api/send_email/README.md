@@ -4,7 +4,7 @@ This route handles `/api/send_email` requests and sends inquiry emails after val
 
 ## Configuration
 
-- `EMAIL_PROVIDER`: `postmark` (default) or `nodemailer`.
+- `EMAIL_PROVIDER`: `postmark` (default), `nodemailer`, or `ses`.
 - Postmark:
   - `POSTMARK_SERVER_TOKEN`
   - `POSTMARK_FROM_EMAIL`
@@ -16,6 +16,14 @@ This route handles `/api/send_email` requests and sends inquiry emails after val
   - `NODEMAILER_SECURE` (`true`/`false`)
   - `NODEMAILER_FROM_EMAIL`
   - `NODEMAILER_TO_EMAIL`
+- Amazon SES:
+  - `AWS_REGION`
+  - `AWS_ACCESS_KEY_ID`
+  - `AWS_SECRET_ACCESS_KEY`
+  - `AWS_SESSION_TOKEN` (optional)
+  - `SES_FROM_EMAIL`
+  - `SES_TO_EMAIL`
+  - `SES_CONFIGURATION_SET` (optional)
 - Shared:
   - `TURNSTILE_SECRET_KEY`
   - `CORS_ORIGIN`

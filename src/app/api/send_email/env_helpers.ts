@@ -1,6 +1,6 @@
 import {getCloudflareContext} from "@opennextjs/cloudflare";
 
-export type EmailProviderName = "postmark" | "nodemailer";
+export type EmailProviderName = "postmark" | "nodemailer" | "ses";
 
 export type WorkerEnv = {
 	POSTMARK_SERVER_TOKEN?: string;
@@ -13,6 +13,13 @@ export type WorkerEnv = {
 	NODEMAILER_SECURE?: string | boolean;
 	NODEMAILER_FROM_EMAIL?: string;
 	NODEMAILER_TO_EMAIL?: string;
+	AWS_REGION?: string;
+	AWS_ACCESS_KEY_ID?: string;
+	AWS_SECRET_ACCESS_KEY?: string;
+	AWS_SESSION_TOKEN?: string;
+	SES_FROM_EMAIL?: string;
+	SES_TO_EMAIL?: string;
+	SES_CONFIGURATION_SET?: string;
 	EMAIL_PROVIDER?: string;
 	CORS_ORIGIN?: string;
 	TURNSTILE_SECRET_KEY?: string;
@@ -30,6 +37,13 @@ export type EnvConfig = {
 	nodemailerSecure?: boolean;
 	nodemailerFromEmail: string;
 	nodemailerToEmail: string;
+	awsRegion: string;
+	awsAccessKeyId: string;
+	awsSecretAccessKey: string;
+	awsSessionToken: string;
+	sesFromEmail: string;
+	sesToEmail: string;
+	sesConfigurationSet: string;
 	corsOrigin: string;
 	turnstileSecretKey: string;
 };
@@ -45,7 +59,9 @@ export const buildCorsHeaders = (origin?: string) => {
 };
 
 const normalizeProvider = (value: string): EmailProviderName => {
-	if (value.toLowerCase() === "nodemailer") return "nodemailer";
+	const normalized = value.toLowerCase();
+	if (normalized === "nodemailer") return "nodemailer";
+	if (normalized === "ses") return "ses";
 	return "postmark";
 };
 
@@ -102,6 +118,13 @@ export const getEnv = async (): Promise<EnvConfig> => {
 		nodemailerSecure: await toEnvBoolean(workerEnv?.NODEMAILER_SECURE),
 		nodemailerFromEmail: await toEnvString(workerEnv?.NODEMAILER_FROM_EMAIL),
 		nodemailerToEmail: await toEnvString(workerEnv?.NODEMAILER_TO_EMAIL),
+		awsRegion: await toEnvString(workerEnv?.AWS_REGION),
+		awsAccessKeyId: await toEnvString(workerEnv?.AWS_ACCESS_KEY_ID),
+		awsSecretAccessKey: await toEnvString(workerEnv?.AWS_SECRET_ACCESS_KEY),
+		awsSessionToken: await toEnvString(workerEnv?.AWS_SESSION_TOKEN),
+		sesFromEmail: await toEnvString(workerEnv?.SES_FROM_EMAIL),
+		sesToEmail: await toEnvString(workerEnv?.SES_TO_EMAIL),
+		sesConfigurationSet: await toEnvString(workerEnv?.SES_CONFIGURATION_SET),
 		corsOrigin: await toEnvString(workerEnv?.CORS_ORIGIN),
 		turnstileSecretKey: await toEnvString(workerEnv?.TURNSTILE_SECRET_KEY),
 	};

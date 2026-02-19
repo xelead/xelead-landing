@@ -1,6 +1,7 @@
 import type {EnvConfig, EmailProviderName} from "./env_helpers";
 import {createNodemailerProvider} from "./nodemailer_provider";
 import {createPostmarkProvider} from "./postmark_provider";
+import {createSesProvider} from "./ses_provider";
 
 export type EmailMessage = {
 	from: string;
@@ -44,6 +45,15 @@ export const getEmailConfigIssues = (env: EnvConfig) => {
 		return issues;
 	}
 
+	if (env.emailProvider === "ses") {
+		if (!env.awsRegion) issues.push(missingField("AWS_REGION"));
+		if (!env.awsAccessKeyId) issues.push(missingField("AWS_ACCESS_KEY_ID"));
+		if (!env.awsSecretAccessKey) issues.push(missingField("AWS_SECRET_ACCESS_KEY"));
+		if (!env.sesFromEmail) issues.push(missingField("SES_FROM_EMAIL"));
+		if (!env.sesToEmail) issues.push(missingField("SES_TO_EMAIL"));
+		return issues;
+	}
+
 	if (!env.postmarkServerToken) issues.push(missingField("POSTMARK_SERVER_TOKEN"));
 	if (!env.postmarkFromEmail) issues.push(missingField("POSTMARK_FROM_EMAIL"));
 	if (!env.postmarkToEmail) issues.push(missingField("POSTMARK_TO_EMAIL"));
@@ -58,6 +68,13 @@ export const resolveFromTo = (env: EnvConfig) => {
 		};
 	}
 
+	if (env.emailProvider === "ses") {
+		return {
+			fromEmail: env.sesFromEmail,
+			toEmail: env.sesToEmail,
+		};
+	}
+
 	return {
 		fromEmail: env.postmarkFromEmail,
 		toEmail: env.postmarkToEmail,
@@ -67,6 +84,10 @@ export const resolveFromTo = (env: EnvConfig) => {
 export const resolveEmailProvider = async (env: EnvConfig): Promise<EmailProvider> => {
 	if (env.emailProvider === "nodemailer") {
 		return await createNodemailerProvider(env);
+	}
+
+	if (env.emailProvider === "ses") {
+		return createSesProvider(env);
 	}
 
 	return createPostmarkProvider(env);
