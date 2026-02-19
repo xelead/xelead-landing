@@ -4,7 +4,7 @@ This route handles `/api/send_email` requests and sends inquiry emails after val
 
 ## Configuration
 
-- `EMAIL_PROVIDER`: `postmark` (default), `nodemailer`, or `ses`.
+- `EMAIL_PROVIDER`: `ses` (default), `postmark`, or `nodemailer`.
 - Postmark:
   - `POSTMARK_SERVER_TOKEN`
   - `POSTMARK_FROM_EMAIL`

@@ -62,7 +62,7 @@ const normalizeProvider = (value: string): EmailProviderName => {
 	const normalized = value.toLowerCase();
 	if (normalized === "nodemailer") return "nodemailer";
 	if (normalized === "ses") return "ses";
-	return "postmark";
+	return "ses";
 };
 
 const getWorkerEnv = (): WorkerEnv | NodeJS.ProcessEnv => {
