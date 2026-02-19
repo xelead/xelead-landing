@@ -49,14 +49,14 @@ export const getEmailConfigIssues = (env: EnvConfig) => {
 		if (!env.awsRegion) issues.push(missingField("AWS_REGION"));
 		if (!env.awsAccessKeyId) issues.push(missingField("AWS_ACCESS_KEY_ID"));
 		if (!env.awsSecretAccessKey) issues.push(missingField("AWS_SECRET_ACCESS_KEY"));
-		if (!env.sesFromEmail) issues.push(missingField("SES_FROM_EMAIL"));
-		if (!env.sesToEmail) issues.push(missingField("SES_TO_EMAIL"));
+		if (!env.emailFromEmail) issues.push(missingField("EMAIL_FROM_EMAIL"));
+		if (!env.emailToEmail) issues.push(missingField("EMAIL_TO_EMAIL"));
 		return issues;
 	}
 
 	if (!env.postmarkServerToken) issues.push(missingField("POSTMARK_SERVER_TOKEN"));
-	if (!env.postmarkFromEmail) issues.push(missingField("POSTMARK_FROM_EMAIL"));
-	if (!env.postmarkToEmail) issues.push(missingField("POSTMARK_TO_EMAIL"));
+	if (!env.emailFromEmail) issues.push(missingField("EMAIL_FROM_EMAIL"));
+	if (!env.emailToEmail) issues.push(missingField("EMAIL_TO_EMAIL"));
 	return issues;
 };
 
@@ -68,16 +68,9 @@ export const resolveFromTo = (env: EnvConfig) => {
 		};
 	}
 
-	if (env.emailProvider === "ses") {
-		return {
-			fromEmail: env.sesFromEmail,
-			toEmail: env.sesToEmail,
-		};
-	}
-
 	return {
-		fromEmail: env.postmarkFromEmail,
-		toEmail: env.postmarkToEmail,
+		fromEmail: env.emailFromEmail,
+		toEmail: env.emailToEmail,
 	};
 };
 

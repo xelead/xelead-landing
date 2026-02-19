@@ -1,8 +1,10 @@
 export interface Env {
   EMAIL_PROVIDER?: "postmark" | "nodemailer" | "ses";
+  EMAIL_FROM_EMAIL?: string;
+  EMAIL_TO_EMAIL?: string;
   POSTMARK_SERVER_TOKEN: string;
-  POSTMARK_FROM_EMAIL: string;
-  POSTMARK_TO_EMAIL: string;
+  POSTMARK_FROM_EMAIL?: string;
+  POSTMARK_TO_EMAIL?: string;
   NODEMAILER_HOST?: string;
   NODEMAILER_PORT?: string;
   NODEMAILER_USER?: string;

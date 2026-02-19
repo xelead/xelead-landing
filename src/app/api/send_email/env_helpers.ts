@@ -20,6 +20,8 @@ export type WorkerEnv = {
 	SES_FROM_EMAIL?: string;
 	SES_TO_EMAIL?: string;
 	SES_CONFIGURATION_SET?: string;
+	EMAIL_FROM_EMAIL?: string;
+	EMAIL_TO_EMAIL?: string;
 	EMAIL_PROVIDER?: string;
 	CORS_ORIGIN?: string;
 	TURNSTILE_SECRET_KEY?: string;
@@ -28,8 +30,8 @@ export type WorkerEnv = {
 export type EnvConfig = {
 	emailProvider: EmailProviderName;
 	postmarkServerToken: string;
-	postmarkFromEmail: string;
-	postmarkToEmail: string;
+	emailFromEmail: string;
+	emailToEmail: string;
 	nodemailerHost: string;
 	nodemailerPort?: number;
 	nodemailerUser: string;
@@ -41,8 +43,6 @@ export type EnvConfig = {
 	awsAccessKeyId: string;
 	awsSecretAccessKey: string;
 	awsSessionToken: string;
-	sesFromEmail: string;
-	sesToEmail: string;
 	sesConfigurationSet: string;
 	corsOrigin: string;
 	turnstileSecretKey: string;
@@ -109,8 +109,14 @@ export const getEnv = async (): Promise<EnvConfig> => {
 	return {
 		emailProvider,
 		postmarkServerToken: await toEnvString(workerEnv?.POSTMARK_SERVER_TOKEN),
-		postmarkFromEmail: await toEnvString(workerEnv?.POSTMARK_FROM_EMAIL),
-		postmarkToEmail: await toEnvString(workerEnv?.POSTMARK_TO_EMAIL),
+		emailFromEmail:
+			(await toEnvString(workerEnv?.EMAIL_FROM_EMAIL)) ||
+			(await toEnvString(workerEnv?.POSTMARK_FROM_EMAIL)) ||
+			(await toEnvString(workerEnv?.SES_FROM_EMAIL)),
+		emailToEmail:
+			(await toEnvString(workerEnv?.EMAIL_TO_EMAIL)) ||
+			(await toEnvString(workerEnv?.POSTMARK_TO_EMAIL)) ||
+			(await toEnvString(workerEnv?.SES_TO_EMAIL)),
 		nodemailerHost: await toEnvString(workerEnv?.NODEMAILER_HOST),
 		nodemailerPort: await toEnvNumber(workerEnv?.NODEMAILER_PORT),
 		nodemailerUser: await toEnvString(workerEnv?.NODEMAILER_USER),
@@ -122,8 +128,6 @@ export const getEnv = async (): Promise<EnvConfig> => {
 		awsAccessKeyId: await toEnvString(workerEnv?.AWS_ACCESS_KEY_ID),
 		awsSecretAccessKey: await toEnvString(workerEnv?.AWS_SECRET_ACCESS_KEY),
 		awsSessionToken: await toEnvString(workerEnv?.AWS_SESSION_TOKEN),
-		sesFromEmail: await toEnvString(workerEnv?.SES_FROM_EMAIL),
-		sesToEmail: await toEnvString(workerEnv?.SES_TO_EMAIL),
 		sesConfigurationSet: await toEnvString(workerEnv?.SES_CONFIGURATION_SET),
 		corsOrigin: await toEnvString(workerEnv?.CORS_ORIGIN),
 		turnstileSecretKey: await toEnvString(workerEnv?.TURNSTILE_SECRET_KEY),
