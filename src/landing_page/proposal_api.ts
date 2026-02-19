@@ -11,6 +11,12 @@ type EmailPayload = {
   name?: string;
 };
 
+type EmailResponse = {
+  ok?: boolean;
+  requestId?: string;
+  messageId?: string;
+};
+
 const normalizeBaseUrl = (baseUrl: string): string => baseUrl.replace(/\/+$/, "");
 
 const buildEmailUrl = (baseUrl: string): string => {
@@ -42,7 +48,7 @@ const parseJsonError = async (response: Response, fallback: string): Promise<str
   return fallback;
 };
 
-export const sendProposalEmail = async (apiBaseUrl: string, payload: ProposalPayload): Promise<void> => {
+export const sendProposalEmail = async (apiBaseUrl: string, payload: ProposalPayload): Promise<EmailResponse> => {
   const emailUrl = buildEmailUrl(apiBaseUrl);
   const emailPayload: EmailPayload = {
     email: payload.email,
@@ -63,5 +69,11 @@ export const sendProposalEmail = async (apiBaseUrl: string, payload: ProposalPay
   if (!response.ok) {
     const message = await parseJsonError(response, `Email request failed (${response.status})`);
     throw new Error(message);
+  }
+
+  try {
+    return (await response.json()) as EmailResponse;
+  } catch {
+    return {};
   }
 };

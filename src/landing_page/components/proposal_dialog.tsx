@@ -167,10 +167,14 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 			setStatus({ tone: "", message: "Sending..." });
 
 			try {
-				await sendProposalEmail(apiBaseUrl || "", {
+				const response = await sendProposalEmail(apiBaseUrl || "", {
 					email: email.trim(),
 					comment: comment.trim(),
 					turnstileToken: turnstileToken.trim(),
+				});
+				console.log("proposal email sent", {
+					requestId: response?.requestId,
+					messageId: response?.messageId,
 				});
 				setStatus({ tone: "success", message: "Thanks! We'll reply shortly." });
 				setEmail("");
