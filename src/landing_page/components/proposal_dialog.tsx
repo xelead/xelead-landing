@@ -7,8 +7,8 @@ import {
 	useState,
 } from "react";
 
-import { landingPageConfig } from "../config";
 import { sendProposalEmail } from "../proposal_api";
+import { useLandingPageConfig } from "../use_landing_page_config";
 
 declare global {
 	interface Window {
@@ -46,7 +46,7 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 	const [busy, setBusy] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 
-	const { apiBaseUrl, turnstileSiteKey } = landingPageConfig;
+	const { apiBaseUrl, turnstileSiteKey } = useLandingPageConfig();
 
 	const resetForm = useCallback(() => {
 		setEmail("");

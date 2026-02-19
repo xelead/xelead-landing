@@ -1,8 +1,8 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `src/app/` contains the Next.js App Router entry points (`layout.tsx`, `page.tsx`) and global styles in `globals.css`.
-- `src/landing_page/` houses landing-specific logic and UI, including `components/` plus shared helpers like `proposalApi.ts` and `proposalDialog.ts`.
+- `src/app/` contains the Next.js App Router entry points (`layout.tsx`, `page.tsx`), global styles in `globals.css`, and UI config bootstrap helpers in `ui_config/`.
+- `src/landing_page/` houses landing-specific logic and UI, including `components/` plus shared helpers like `proposal_api.ts` and `proposal_dialog.ts`.
 - `public/` stores static assets served directly by Next.js.
 - Root configs include `next.config.ts`, `open-next.config.ts`, `wrangler.jsonc`, `tsconfig.json`, and `eslint.config.mjs`.
 

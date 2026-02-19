@@ -1,8 +1,5 @@
-import { landingPageConfig } from "./config";
+import { getLandingPageConfig } from "./config";
 import { sendProposalEmail } from "./proposal_api";
-
-const DEFAULT_SITE_KEY = landingPageConfig.turnstileSiteKey;
-const DEFAULT_API_BASE_URL = landingPageConfig.apiBaseUrl;
 
 type ProposalConfig = {
     apiBaseUrl: string;
@@ -37,7 +34,8 @@ function el(id: string): HTMLElement {
 }
 
 function readDialogConfig(dialog: HTMLDialogElement): ProposalConfig {
-    const apiBaseUrl = dialog.getAttribute("data-api-base-url")?.trim() || DEFAULT_API_BASE_URL;
+    const defaultApiBaseUrl = getLandingPageConfig().apiBaseUrl;
+    const apiBaseUrl = dialog.getAttribute("data-api-base-url")?.trim() || defaultApiBaseUrl;
     return {
         apiBaseUrl,
     };
@@ -80,7 +78,8 @@ function wireTurnstile(form: HTMLFormElement, statusNode: HTMLParagraphElement):
 
     if (!widget || !tokenInput) return;
 
-    const siteKey = widget.getAttribute("data-sitekey")?.trim() || DEFAULT_SITE_KEY;
+    const defaultSiteKey = getLandingPageConfig().turnstileSiteKey;
+    const siteKey = widget.getAttribute("data-sitekey")?.trim() || defaultSiteKey;
     if (siteKey) {
         widget.setAttribute("data-sitekey", siteKey);
     }

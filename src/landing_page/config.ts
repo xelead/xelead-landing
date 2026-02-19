@@ -1,13 +1,27 @@
+import type { UiConfig } from "@/types/ui_config";
+
 type LandingPageConfig = {
 	turnstileSiteKey: string;
 	apiBaseUrl: string;
 	assetsUrl: string;
 };
 
-export const landingPageConfig: LandingPageConfig = {
-	turnstileSiteKey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "",
-	apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "",
-	assetsUrl: process.env.NEXT_PUBLIC_ASSETS_BASE_URL ?? ""
-};
+function readUiConfig(): UiConfig {
+	if (typeof window === "undefined" || !window.uiConfig) {
+		return {};
+	}
+	return window.uiConfig;
+}
 
-console.log("Configuration as:", landingPageConfig)
+function readPublicConfigValue(key: string): string {
+	const value = readUiConfig()[key];
+	return typeof value === "string" ? value : "";
+}
+
+export function getLandingPageConfig(): LandingPageConfig {
+	return {
+		turnstileSiteKey: readPublicConfigValue("NEXT_PUBLIC_TURNSTILE_SITE_KEY"),
+		apiBaseUrl: readPublicConfigValue("NEXT_PUBLIC_API_BASE_URL"),
+		assetsUrl: readPublicConfigValue("NEXT_PUBLIC_ASSETS_BASE_URL"),
+	};
+}

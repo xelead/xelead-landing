@@ -1,3 +1,7 @@
+"use client";
+
+import { useLandingPageConfig } from "../use_landing_page_config";
+
 type HeaderProps = {
 	phone: string;
 	email: string;
@@ -5,7 +9,8 @@ type HeaderProps = {
 };
 
 export default function Header({ phone, email, onProposal }: HeaderProps) {
-	const assetsBaseUrl = (process.env.NEXT_PUBLIC_ASSETS_BASE_URL || "").replace(/\/$/, "");
+	const { assetsUrl } = useLandingPageConfig();
+	const assetsBaseUrl = assetsUrl.replace(/\/$/, "");
 
 	return (
 		<header className="container">
