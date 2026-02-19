@@ -215,6 +215,7 @@ export async function POST(request: Request) {
 				To: postmarkToEmail,
 				ReplyTo: email,
 				Subject: subject,
+				MessageStream: "user-management",
 				TextBody: textLines.join("\n"),
 			});
 		} catch (err) {
