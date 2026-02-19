@@ -1,4 +1,4 @@
-import {buildCorsHeaders, getEnv} from "./env_helpers";
+import {buildCorsHeaders, getEnvString} from "./env_helpers";
 import {EmailProviderError, getEmailConfigIssues, resolveEmailProvider, resolveFromTo} from "./email_provider";
 
 type EmailRequest = {
@@ -92,8 +92,7 @@ const jsonResponse = (
 };
 
 export async function OPTIONS(request: Request) {
-	const { corsOrigin } = await getEnv();
-	const corsHeaders = buildCorsHeaders(corsOrigin);
+	const corsHeaders = buildCorsHeaders(await getEnvString("CORS_ORIGIN"));
 	return new Response(null, { status: 204, headers: corsHeaders });
 }
 
@@ -102,8 +101,7 @@ export async function POST(request: Request) {
 		console.log("send_email request received");
 		const requestId =
 			typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined;
-		const env = await getEnv();
-		const corsHeaders = buildCorsHeaders(env.corsOrigin);
+		const corsHeaders = buildCorsHeaders(await getEnvString("CORS_ORIGIN"));
 
 		const contentType = request.headers.get("Content-Type") || "";
 		if (!contentType.includes("application/json")) {
@@ -131,8 +129,9 @@ export async function POST(request: Request) {
 			return jsonResponse(400, { error: "Captcha required", requestId }, corsHeaders, requestId);
 		}
 
-		const configIssues = getEmailConfigIssues(env);
-		if (!env.turnstileSecretKey) {
+		const configIssues = await getEmailConfigIssues();
+		const turnstileSecretKey = await getEnvString("TURNSTILE_SECRET_KEY");
+		if (!turnstileSecretKey) {
 			configIssues.push("Missing TURNSTILE_SECRET_KEY");
 		}
 		if (configIssues.length > 0) {
@@ -147,7 +146,7 @@ export async function POST(request: Request) {
 
 		try {
 			const remoteIp = request.headers.get("CF-Connecting-IP");
-			await verifyTurnstile(turnstileToken, env.turnstileSecretKey, requestId, remoteIp);
+			await verifyTurnstile(turnstileToken, turnstileSecretKey, requestId, remoteIp);
 		} catch (err) {
 			const message = err instanceof Error ? err.message : "Captcha verification failed";
 			console.error("send_email error: turnstile verify failed", { requestId, message });
@@ -163,8 +162,8 @@ export async function POST(request: Request) {
 			message,
 		].filter(Boolean);
 
-		const { fromEmail, toEmail } = resolveFromTo(env);
-		const emailProvider = await resolveEmailProvider(env);
+		const { fromEmail, toEmail } = await resolveFromTo();
+		const emailProvider = await resolveEmailProvider();
 		let sendResult: { messageId?: string } | undefined;
 		try {
 			sendResult = await emailProvider.sendEmail(
@@ -200,8 +199,7 @@ export async function POST(request: Request) {
 			requestId
 		);
 	} catch (err) {
-		const env = await getEnv();
-		const corsHeaders = buildCorsHeaders(env.corsOrigin);
+		const corsHeaders = buildCorsHeaders(await getEnvString("CORS_ORIGIN"));
 		const details = err instanceof Error ? err.message : "Unknown error";
 		const stack = err instanceof Error ? err.stack : undefined;
 		console.error("send_email error: unexpected", { details, stack });

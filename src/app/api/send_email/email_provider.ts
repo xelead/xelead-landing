@@ -1,7 +1,9 @@
-import type {EnvConfig, EmailProviderName} from "./env_helpers";
+import {getEnvString} from "./env_helpers";
 import {createNodemailerProvider} from "./nodemailer_provider";
 import {createPostmarkProvider} from "./postmark_provider";
 import {createSesProvider} from "./ses_provider";
+
+export type EmailProviderName = "postmark" | "nodemailer" | "ses";
 
 export type EmailMessage = {
 	from: string;
@@ -32,47 +34,98 @@ export type EmailProvider = {
 
 const missingField = (label: string) => `Missing ${label}`;
 
-export const getEmailConfigIssues = (env: EnvConfig) => {
+const normalizeProvider = (value: string): EmailProviderName => {
+	const normalized = value.toLowerCase();
+	if (normalized === "nodemailer") return "nodemailer";
+	if (normalized === "ses") return "ses";
+	return "ses";
+};
+
+const getProvider = async (): Promise<EmailProviderName> => {
+	return normalizeProvider(await getEnvString("EMAIL_PROVIDER"));
+};
+
+const getEnvNumber = async (key: Parameters<typeof getEnvString>[0]) => {
+	const raw = await getEnvString(key);
+	if (!raw) return undefined;
+	const parsed = Number(raw);
+	if (!Number.isFinite(parsed)) return undefined;
+	return parsed;
+};
+
+const getEnvBoolean = async (key: Parameters<typeof getEnvString>[0]) => {
+	const raw = (await getEnvString(key)).trim();
+	if (!raw) return undefined;
+	const normalized = raw.toLowerCase();
+	if (["true", "1", "yes", "on"].includes(normalized)) return true;
+	if (["false", "0", "no", "off"].includes(normalized)) return false;
+	return undefined;
+};
+
+export const getEmailConfigIssues = async () => {
 	const issues: string[] = [];
-	if (env.emailProvider === "nodemailer") {
-		if (!env.nodemailerHost) issues.push(missingField("NODEMAILER_HOST"));
-		if (!env.nodemailerPort) issues.push(missingField("NODEMAILER_PORT"));
-		if ((env.nodemailerUser && !env.nodemailerPass) || (!env.nodemailerUser && env.nodemailerPass)) {
+	const provider = await getProvider();
+	if (provider === "nodemailer") {
+		const nodemailerHost = await getEnvString("NODEMAILER_HOST");
+		const nodemailerPort = await getEnvNumber("NODEMAILER_PORT");
+		const nodemailerUser = await getEnvString("NODEMAILER_USER");
+		const nodemailerPass = await getEnvString("NODEMAILER_PASS");
+
+		if (!nodemailerHost) issues.push(missingField("NODEMAILER_HOST"));
+		if (!nodemailerPort) issues.push(missingField("NODEMAILER_PORT"));
+		if (!(await getEnvString("NOTIFY_FROM_EMAIL"))) issues.push(missingField("NOTIFY_FROM_EMAIL"));
+		if (!(await getEnvString("NOTIFY_TO_EMAIL"))) issues.push(missingField("NOTIFY_TO_EMAIL"));
+		if ((nodemailerUser && !nodemailerPass) || (!nodemailerUser && nodemailerPass)) {
 			issues.push("NODEMAILER_USER and NODEMAILER_PASS must be set together");
 		}
 		return issues;
 	}
 
-	if (env.emailProvider === "ses") {
-		if (!env.awsRegion) issues.push(missingField("AWS_REGION"));
-		if (!env.awsAccessKeyId) issues.push(missingField("AWS_ACCESS_KEY_ID"));
-		if (!env.awsSecretAccessKey) issues.push(missingField("AWS_SECRET_ACCESS_KEY"));
-		if (!env.notifyFromEmail) issues.push(missingField("NOTIFY_FROM_EMAIL"));
-		if (!env.notifyToEmail) issues.push(missingField("NOTIFY_TO_EMAIL"));
+	if (provider === "ses") {
+		if (!(await getEnvString("AWS_REGION"))) issues.push(missingField("AWS_REGION"));
+		if (!(await getEnvString("AWS_ACCESS_KEY_ID"))) issues.push(missingField("AWS_ACCESS_KEY_ID"));
+		if (!(await getEnvString("AWS_SECRET_ACCESS_KEY"))) issues.push(missingField("AWS_SECRET_ACCESS_KEY"));
+		if (!(await getEnvString("NOTIFY_FROM_EMAIL"))) issues.push(missingField("NOTIFY_FROM_EMAIL"));
+		if (!(await getEnvString("NOTIFY_TO_EMAIL"))) issues.push(missingField("NOTIFY_TO_EMAIL"));
 		return issues;
 	}
 
-	if (!env.postmarkServerToken) issues.push(missingField("POSTMARK_SERVER_TOKEN"));
-	if (!env.notifyFromEmail) issues.push(missingField("NOTIFY_FROM_EMAIL"));
-	if (!env.notifyToEmail) issues.push(missingField("NOTIFY_TO_EMAIL"));
+	if (!(await getEnvString("POSTMARK_SERVER_TOKEN"))) issues.push(missingField("POSTMARK_SERVER_TOKEN"));
+	if (!(await getEnvString("NOTIFY_FROM_EMAIL"))) issues.push(missingField("NOTIFY_FROM_EMAIL"));
+	if (!(await getEnvString("NOTIFY_TO_EMAIL"))) issues.push(missingField("NOTIFY_TO_EMAIL"));
 	return issues;
 };
 
-export const resolveFromTo = (env: EnvConfig) => {
+export const resolveFromTo = async () => {
 	return {
-		fromEmail: env.notifyFromEmail,
-		toEmail: env.notifyToEmail,
+		fromEmail: await getEnvString("NOTIFY_FROM_EMAIL"),
+		toEmail: await getEnvString("NOTIFY_TO_EMAIL"),
 	};
 };
 
-export const resolveEmailProvider = async (env: EnvConfig): Promise<EmailProvider> => {
-	if (env.emailProvider === "nodemailer") {
-		return await createNodemailerProvider(env);
+export const resolveEmailProvider = async (): Promise<EmailProvider> => {
+	const provider = await getProvider();
+	if (provider === "nodemailer") {
+		return await createNodemailerProvider({
+			host: await getEnvString("NODEMAILER_HOST"),
+			port: await getEnvNumber("NODEMAILER_PORT"),
+			secure: await getEnvBoolean("NODEMAILER_SECURE"),
+			user: await getEnvString("NODEMAILER_USER"),
+			pass: await getEnvString("NODEMAILER_PASS"),
+		});
 	}
 
-	if (env.emailProvider === "ses") {
-		return createSesProvider(env);
+	if (provider === "ses") {
+		return createSesProvider({
+			region: await getEnvString("AWS_REGION"),
+			accessKeyId: await getEnvString("AWS_ACCESS_KEY_ID"),
+			secretAccessKey: await getEnvString("AWS_SECRET_ACCESS_KEY"),
+			sessionToken: await getEnvString("AWS_SESSION_TOKEN"),
+			configurationSetName: await getEnvString("SES_CONFIGURATION_SET"),
+		});
 	}
 
-	return createPostmarkProvider(env);
+	return createPostmarkProvider({
+		serverToken: await getEnvString("POSTMARK_SERVER_TOKEN"),
+	});
 };

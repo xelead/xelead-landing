@@ -1,15 +1,22 @@
-import type {EnvConfig} from "./env_helpers";
 import {EmailProviderError, type EmailMessage, type EmailProvider} from "./email_provider";
 
-const createTransport = async (env: EnvConfig) => {
+type NodemailerConfig = {
+	host: string;
+	port?: number;
+	secure?: boolean;
+	user: string;
+	pass: string;
+};
+
+const createTransport = async (config: NodemailerConfig) => {
 	try {
 		const nodemailer = await import("nodemailer");
 		return nodemailer.createTransport({
-			host: env.nodemailerHost,
-			port: env.nodemailerPort,
-			secure: env.nodemailerSecure ?? false,
-			auth: env.nodemailerUser && env.nodemailerPass
-				? { user: env.nodemailerUser, pass: env.nodemailerPass }
+			host: config.host,
+			port: config.port,
+			secure: config.secure ?? false,
+			auth: config.user && config.pass
+				? { user: config.user, pass: config.pass }
 				: undefined,
 		});
 	} catch (err) {
@@ -18,8 +25,8 @@ const createTransport = async (env: EnvConfig) => {
 	}
 };
 
-export const createNodemailerProvider = async (env: EnvConfig): Promise<EmailProvider> => {
-	const transport = await createTransport(env);
+export const createNodemailerProvider = async (config: NodemailerConfig): Promise<EmailProvider> => {
+	const transport = await createTransport(config);
 
 	return {
 		name: "nodemailer",

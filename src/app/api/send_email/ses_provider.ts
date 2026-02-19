@@ -1,21 +1,28 @@
 import {SESv2Client, SendEmailCommand} from "@aws-sdk/client-sesv2";
-import type {EnvConfig} from "./env_helpers";
 import {EmailProviderError, type EmailMessage, type EmailProvider} from "./email_provider";
 
-const createClient = (env: EnvConfig) => {
+type SesConfig = {
+	region: string;
+	accessKeyId: string;
+	secretAccessKey: string;
+	sessionToken: string;
+	configurationSetName: string;
+};
+
+const createClient = (config: SesConfig) => {
 	return new SESv2Client({
-		region: env.awsRegion,
+		region: config.region,
 		credentials: {
-			accessKeyId: env.awsAccessKeyId,
-			secretAccessKey: env.awsSecretAccessKey,
-			sessionToken: env.awsSessionToken || undefined,
+			accessKeyId: config.accessKeyId,
+			secretAccessKey: config.secretAccessKey,
+			sessionToken: config.sessionToken || undefined,
 		},
 	});
 };
 
-export const createSesProvider = (env: EnvConfig): EmailProvider => {
-	const client = createClient(env);
-	const configurationSetName = env.sesConfigurationSet || undefined;
+export const createSesProvider = (config: SesConfig): EmailProvider => {
+	const client = createClient(config);
+	const configurationSetName = config.configurationSetName || undefined;
 
 	return {
 		name: "ses",

@@ -1,16 +1,13 @@
 import postmark from "postmark";
-import type {EnvConfig} from "./env_helpers";
 import {EmailProviderError, type EmailMessage, type EmailProvider} from "./email_provider";
 
 const POSTMARK_MESSAGE_STREAM = "user-management";
 
-export const createPostmarkProvider = (env: EnvConfig): EmailProvider => {
-	const {postmarkServerToken} = env;
-
+export const createPostmarkProvider = (params: { serverToken: string }): EmailProvider => {
 	return {
 		name: "postmark",
 		async sendEmail(message: EmailMessage, requestId?: string) {
-			const client = new postmark.ServerClient(postmarkServerToken);
+			const client = new postmark.ServerClient(params.serverToken);
 			let postmarkPayload:
 				| { MessageID?: string; Message?: string; ErrorCode?: number; To?: string; SubmittedAt?: string }
 				| undefined;
