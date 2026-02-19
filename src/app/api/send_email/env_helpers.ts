@@ -4,24 +4,18 @@ export type EmailProviderName = "postmark" | "nodemailer" | "ses";
 
 export type WorkerEnv = {
 	POSTMARK_SERVER_TOKEN?: string;
-	POSTMARK_FROM_EMAIL?: string;
-	POSTMARK_TO_EMAIL?: string;
 	NODEMAILER_HOST?: string;
 	NODEMAILER_PORT?: string | number;
 	NODEMAILER_USER?: string;
 	NODEMAILER_PASS?: string;
 	NODEMAILER_SECURE?: string | boolean;
-	NODEMAILER_FROM_EMAIL?: string;
-	NODEMAILER_TO_EMAIL?: string;
 	AWS_REGION?: string;
 	AWS_ACCESS_KEY_ID?: string;
 	AWS_SECRET_ACCESS_KEY?: string;
 	AWS_SESSION_TOKEN?: string;
-	SES_FROM_EMAIL?: string;
-	SES_TO_EMAIL?: string;
 	SES_CONFIGURATION_SET?: string;
-	EMAIL_FROM_EMAIL?: string;
-	EMAIL_TO_EMAIL?: string;
+	NOTIFY_FROM_EMAIL?: string;
+	NOTIFY_TO_EMAIL?: string;
 	EMAIL_PROVIDER?: string;
 	CORS_ORIGIN?: string;
 	TURNSTILE_SECRET_KEY?: string;
@@ -30,15 +24,13 @@ export type WorkerEnv = {
 export type EnvConfig = {
 	emailProvider: EmailProviderName;
 	postmarkServerToken: string;
-	emailFromEmail: string;
-	emailToEmail: string;
+	notifyFromEmail: string;
+	notifyToEmail: string;
 	nodemailerHost: string;
 	nodemailerPort?: number;
 	nodemailerUser: string;
 	nodemailerPass: string;
 	nodemailerSecure?: boolean;
-	nodemailerFromEmail: string;
-	nodemailerToEmail: string;
 	awsRegion: string;
 	awsAccessKeyId: string;
 	awsSecretAccessKey: string;
@@ -109,21 +101,13 @@ export const getEnv = async (): Promise<EnvConfig> => {
 	return {
 		emailProvider,
 		postmarkServerToken: await toEnvString(workerEnv?.POSTMARK_SERVER_TOKEN),
-		emailFromEmail:
-			(await toEnvString(workerEnv?.EMAIL_FROM_EMAIL)) ||
-			(await toEnvString(workerEnv?.POSTMARK_FROM_EMAIL)) ||
-			(await toEnvString(workerEnv?.SES_FROM_EMAIL)),
-		emailToEmail:
-			(await toEnvString(workerEnv?.EMAIL_TO_EMAIL)) ||
-			(await toEnvString(workerEnv?.POSTMARK_TO_EMAIL)) ||
-			(await toEnvString(workerEnv?.SES_TO_EMAIL)),
+		notifyFromEmail: (await toEnvString(workerEnv?.NOTIFY_FROM_EMAIL)),
+		notifyToEmail: (await toEnvString(workerEnv?.NOTIFY_TO_EMAIL)),
 		nodemailerHost: await toEnvString(workerEnv?.NODEMAILER_HOST),
 		nodemailerPort: await toEnvNumber(workerEnv?.NODEMAILER_PORT),
 		nodemailerUser: await toEnvString(workerEnv?.NODEMAILER_USER),
 		nodemailerPass: await toEnvString(workerEnv?.NODEMAILER_PASS),
 		nodemailerSecure: await toEnvBoolean(workerEnv?.NODEMAILER_SECURE),
-		nodemailerFromEmail: await toEnvString(workerEnv?.NODEMAILER_FROM_EMAIL),
-		nodemailerToEmail: await toEnvString(workerEnv?.NODEMAILER_TO_EMAIL),
 		awsRegion: await toEnvString(workerEnv?.AWS_REGION),
 		awsAccessKeyId: await toEnvString(workerEnv?.AWS_ACCESS_KEY_ID),
 		awsSecretAccessKey: await toEnvString(workerEnv?.AWS_SECRET_ACCESS_KEY),

@@ -37,8 +37,6 @@ export const getEmailConfigIssues = (env: EnvConfig) => {
 	if (env.emailProvider === "nodemailer") {
 		if (!env.nodemailerHost) issues.push(missingField("NODEMAILER_HOST"));
 		if (!env.nodemailerPort) issues.push(missingField("NODEMAILER_PORT"));
-		if (!env.nodemailerFromEmail) issues.push(missingField("NODEMAILER_FROM_EMAIL"));
-		if (!env.nodemailerToEmail) issues.push(missingField("NODEMAILER_TO_EMAIL"));
 		if ((env.nodemailerUser && !env.nodemailerPass) || (!env.nodemailerUser && env.nodemailerPass)) {
 			issues.push("NODEMAILER_USER and NODEMAILER_PASS must be set together");
 		}
@@ -49,28 +47,21 @@ export const getEmailConfigIssues = (env: EnvConfig) => {
 		if (!env.awsRegion) issues.push(missingField("AWS_REGION"));
 		if (!env.awsAccessKeyId) issues.push(missingField("AWS_ACCESS_KEY_ID"));
 		if (!env.awsSecretAccessKey) issues.push(missingField("AWS_SECRET_ACCESS_KEY"));
-		if (!env.emailFromEmail) issues.push(missingField("EMAIL_FROM_EMAIL"));
-		if (!env.emailToEmail) issues.push(missingField("EMAIL_TO_EMAIL"));
+		if (!env.notifyFromEmail) issues.push(missingField("NOTIFY_FROM_EMAIL"));
+		if (!env.notifyToEmail) issues.push(missingField("NOTIFY_TO_EMAIL"));
 		return issues;
 	}
 
 	if (!env.postmarkServerToken) issues.push(missingField("POSTMARK_SERVER_TOKEN"));
-	if (!env.emailFromEmail) issues.push(missingField("EMAIL_FROM_EMAIL"));
-	if (!env.emailToEmail) issues.push(missingField("EMAIL_TO_EMAIL"));
+	if (!env.notifyFromEmail) issues.push(missingField("NOTIFY_FROM_EMAIL"));
+	if (!env.notifyToEmail) issues.push(missingField("NOTIFY_TO_EMAIL"));
 	return issues;
 };
 
 export const resolveFromTo = (env: EnvConfig) => {
-	if (env.emailProvider === "nodemailer") {
-		return {
-			fromEmail: env.nodemailerFromEmail,
-			toEmail: env.nodemailerToEmail,
-		};
-	}
-
 	return {
-		fromEmail: env.emailFromEmail,
-		toEmail: env.emailToEmail,
+		fromEmail: env.notifyFromEmail,
+		toEmail: env.notifyToEmail,
 	};
 };
 

@@ -5,7 +5,7 @@ This route handles `/api/send_email` requests and sends inquiry emails after val
 ## Configuration
 
 - `EMAIL_PROVIDER`: `ses` (default), `postmark`, or `nodemailer`.
-- `EMAIL_FROM_EMAIL` and `EMAIL_TO_EMAIL` are shared by Postmark and SES.
+- `NOTIFY_FROM_EMAIL` and `NOTIFY_TO_EMAIL` are shared by Postmark and SES and NodeMailer.
 - Postmark:
   - `POSTMARK_SERVER_TOKEN`
 - Nodemailer:
@@ -13,8 +13,6 @@ This route handles `/api/send_email` requests and sends inquiry emails after val
   - `NODEMAILER_PORT`
   - `NODEMAILER_USER` and `NODEMAILER_PASS` (optional, but must be set together)
   - `NODEMAILER_SECURE` (`true`/`false`)
-  - `NODEMAILER_FROM_EMAIL`
-  - `NODEMAILER_TO_EMAIL`
 - Amazon SES:
   - `AWS_REGION`
   - `AWS_ACCESS_KEY_ID`
