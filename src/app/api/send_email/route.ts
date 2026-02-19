@@ -153,7 +153,7 @@ export async function POST(request: Request) {
 			return jsonResponse(400, { error: message, requestId }, corsHeaders, requestId);
 		}
 
-		const subject = "New landing page inquiry";
+		const subject = `New landing page inquiry from ${name || email}`;
 		const textLines = [
 			`Name: ${name || "Proposal request"}`,
 			`Email: ${email}`,
