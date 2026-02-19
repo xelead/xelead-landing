@@ -489,15 +489,15 @@ dialog[open].proposal-dialog {
 }
 
 .proposal-shell {
-	padding: 22px;
+	padding: 18px;
 	display: grid;
-	gap: 18px;
+	gap: 14px;
 }
 
 .proposal-head {
 	display: flex;
 	justify-content: space-between;
-	gap: 18px;
+	gap: 14px;
 }
 
 .proposal-kicker {
@@ -510,37 +510,37 @@ dialog[open].proposal-dialog {
 
 .proposal-head h3 {
 	margin: 6px 0 0;
-	font-size: 22px;
+	font-size: 20px;
 	letter-spacing: -0.02em;
 }
 
 .proposal-sub {
 	margin: 8px 0 0;
 	color: var(--muted2);
-	font-size: 14px;
+	font-size: 13px;
 	line-height: 1.6;
 }
 
 .dialog-close {
-	width: 38px;
-	height: 38px;
+	width: 34px;
+	height: 34px;
 	border-radius: 12px;
 	border: 1px solid rgba(255,255,255,0.12);
 	background: rgba(255,255,255,0.05);
 	color: white;
 	cursor: pointer;
-	font-size: 22px;
+	font-size: 20px;
 	line-height: 1;
 }
 
 .proposal-form {
 	display: grid;
-	gap: 14px;
+	gap: 12px;
 }
 
 .field {
 	display: grid;
-	gap: 8px;
+	gap: 6px;
 	font-size: 13px;
 	color: var(--muted);
 }
@@ -552,7 +552,7 @@ dialog[open].proposal-dialog {
 	border: 1px solid rgba(255,255,255,0.12);
 	background: rgba(255,255,255,0.05);
 	color: white;
-	padding: 12px 14px;
+	padding: 10px 12px;
 	font-size: 14px;
 	font-family: inherit;
 	outline: none;
@@ -567,11 +567,11 @@ dialog[open].proposal-dialog {
 .proposal-captcha {
 	display: flex;
 	justify-content: flex-start;
-	min-height: 65px;
+	min-height: 58px;
 }
 
 .cf-turnstile {
-	min-height: 65px;
+	min-height: 58px;
 	min-width: 300px;
 }
 
@@ -598,7 +598,8 @@ dialog[open].proposal-dialog {
 }
 
 .proposal-actions .btn {
-	min-width: 140px;
+	min-width: 128px;
+	height: 40px;
 	justify-content: center;
 }
 

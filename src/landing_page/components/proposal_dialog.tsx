@@ -229,7 +229,7 @@ const ProposalDialog = forwardRef<ProposalDialogHandle>(function ProposalDialog(
 						<span>Comment</span>
 						<textarea
 							name="comment"
-							rows={4}
+							rows={3}
 							required
 							placeholder="What are you building and when do you want to launch?"
 							value={comment}
