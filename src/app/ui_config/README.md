@@ -1,3 +1,3 @@
-# UI Config Bootstrap
+# UI Config Gate
 
-This module fetches `/api/ui_config` on app load, writes the returned `NEXT_PUBLIC*` values to `window.uiConfig`, and emits `ui_config_updated` so client components can refresh runtime configuration.
+This module gates app rendering until `/api/ui_config` is loaded. It writes the returned `NEXT_PUBLIC*` values to `window.uiConfig`, emits `ui_config_updated`, and only then renders page content.

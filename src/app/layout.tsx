@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import UiConfigBootstrap from "./ui_config/ui_config_bootstrap";
+import UiConfigGate from "./ui_config/ui_config_gate";
 import "./globals.css";
 
 const assetsBaseUrl = (process.env.NEXT_PUBLIC_ASSETS_BASE_URL || "").replace(/\/$/, "");
@@ -34,8 +34,7 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body className={`${geistSans.variable} ${geistMono.variable} landing-body`}>
-				<UiConfigBootstrap />
-				{children}
+				<UiConfigGate>{children}</UiConfigGate>
 			</body>
 		</html>
 	);

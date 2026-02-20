@@ -1,16 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import type { UiConfig } from "@/types/ui_config";
 import { UI_CONFIG_UPDATED_EVENT } from "./ui_config_shared";
 
-export default function UiConfigBootstrap() {
+type UiConfigGateProps = {
+	children: React.ReactNode;
+};
+
+export default function UiConfigGate({ children }: UiConfigGateProps) {
+	const [isReady, setIsReady] = useState(false);
+
 	useEffect(() => {
 		let mounted = true;
 
 		const loadUiConfig = async () => {
 			try {
+				if (window.uiConfig) {
+					setIsReady(true);
+					return;
+				}
+
 				const response = await fetch("/api/ui_config", { cache: "no-store" });
 				if (!response.ok) {
 					throw new Error(`Failed to load UI config (${response.status})`);
@@ -26,6 +37,10 @@ export default function UiConfigBootstrap() {
 				if (mounted && !window.uiConfig) {
 					window.uiConfig = {};
 				}
+			} finally {
+				if (mounted) {
+					setIsReady(true);
+				}
 			}
 		};
 
@@ -36,5 +51,9 @@ export default function UiConfigBootstrap() {
 		};
 	}, []);
 
-	return null;
+	if (!isReady) {
+		return null;
+	}
+
+	return <>{children}</>;
 }
