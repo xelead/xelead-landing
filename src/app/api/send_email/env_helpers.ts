@@ -28,7 +28,7 @@ export const buildCorsHeaders = (origin?: string) => {
 	};
 };
 
-const getWorkerEnv = (): NodeJS.ProcessEnv => {
+export const getWorkerEnv = (): NodeJS.ProcessEnv => {
 	try {
 		return getCloudflareContext().env as NodeJS.ProcessEnv;
 	} catch {
@@ -48,7 +48,7 @@ const toEnvString = async (value: unknown): Promise<string> => {
 	return "";
 };
 
-export const getEnvString = async (key: EnvKey): Promise<string> => {
+export const getEnvString = async (key: string): Promise<string> => {
 	const workerEnv = getWorkerEnv();
 	return await toEnvString(workerEnv?.[key]);
 };
@@ -70,4 +70,3 @@ export const getEnvBoolean = async (key: Parameters<typeof getEnvString>[0]) => 
 	if (["false", "0", "no", "off"].includes(normalized)) return false;
 	return undefined;
 };
-
