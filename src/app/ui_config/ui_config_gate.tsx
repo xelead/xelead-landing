@@ -9,6 +9,27 @@ type UiConfigGateProps = {
 	children: React.ReactNode;
 };
 
+function setHeadLink(rel: string, href: string) {
+	const selector = `link[rel="${rel}"]`;
+	let link = document.head.querySelector<HTMLLinkElement>(selector);
+	if (!link) {
+		link = document.createElement("link");
+		link.setAttribute("rel", rel);
+		document.head.appendChild(link);
+	}
+	link.setAttribute("href", href);
+}
+
+function applyFaviconConfig(config: UiConfig) {
+	const assetsBaseUrl = (config.NEXT_PUBLIC_ASSETS_BASE_URL || "").replace(/\/$/, "");
+	if (!assetsBaseUrl) return;
+
+	const faviconUrl = `${assetsBaseUrl}/files/images/favicon/fav_icon.png`;
+	setHeadLink("icon", faviconUrl);
+	setHeadLink("shortcut icon", faviconUrl);
+	setHeadLink("apple-touch-icon", faviconUrl);
+}
+
 export default function UiConfigGate({ children }: UiConfigGateProps) {
 	const [isReady, setIsReady] = useState(false);
 
@@ -18,6 +39,7 @@ export default function UiConfigGate({ children }: UiConfigGateProps) {
 		const loadUiConfig = async () => {
 			try {
 				if (window.uiConfig) {
+					applyFaviconConfig(window.uiConfig);
 					setIsReady(true);
 					return;
 				}
@@ -31,6 +53,7 @@ export default function UiConfigGate({ children }: UiConfigGateProps) {
 				if (!mounted) return;
 
 				window.uiConfig = config;
+				applyFaviconConfig(config);
 				window.dispatchEvent(new Event(UI_CONFIG_UPDATED_EVENT));
 			} catch (error) {
 				console.error("Unable to initialize window.uiConfig", error);
