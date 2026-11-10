@@ -209,3 +209,5 @@ next-env.d.ts
 # removing public files
 public/
 
+GATES.md
+.unlazy/
